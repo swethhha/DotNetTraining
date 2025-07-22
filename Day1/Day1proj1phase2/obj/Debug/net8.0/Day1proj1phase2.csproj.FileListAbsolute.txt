@@ -1,0 +1,15 @@
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.AssemblyInfoInputs.cache
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.AssemblyInfo.cs
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.csproj.CoreCompileInputs.cache
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.sourcelink.json
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\bin\Debug\net8.0\Day1proj1phase2.exe
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\bin\Debug\net8.0\Day1proj1phase2.deps.json
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\bin\Debug\net8.0\Day1proj1phase2.runtimeconfig.json
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\bin\Debug\net8.0\Day1proj1phase2.dll
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\bin\Debug\net8.0\Day1proj1phase2.pdb
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.dll
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\refint\Day1proj1phase2.dll
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.pdb
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\Day1proj1phase2.genruntimeconfig.cache
+C:\Users\Swetht\source\repos\DotnetTraining\Day1\Day1proj1phase2\obj\Debug\net8.0\ref\Day1proj1phase2.dll
