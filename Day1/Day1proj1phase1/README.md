@@ -26,3 +26,31 @@ It allows creating users and tickets, displays ticket status, and allows closing
 
 ---
 
+## ▶️ How to Run the Project
+
+### ✅ Prerequisites
+
+- .NET SDK installed (version 6 or later recommended)
+
+### 📌 Steps
+
+1. **Open terminal and navigate to project directory:**
+
+   ```bash
+   cd path\\to\\Day1proj1phase2
+
+2. **Build the project:**
+
+   ```bash
+    dotnet build
+2. **Run the application:**
+
+   ```bash
+    dotnet run
+
+---
+## Sample Output:
+
+<img width="399" height="184" alt="image" src="https://github.com/user-attachments/assets/98e07ba9-2ab3-4332-a0b6-3e4fe3830504" />
+
+ ---
