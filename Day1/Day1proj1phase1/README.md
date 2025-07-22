@@ -37,7 +37,7 @@ It allows creating users and tickets, displays ticket status, and allows closing
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day1proj1phase2
+   cd path\\to\\Day1proj1phase1
 
 2. **Build the project:**
 
