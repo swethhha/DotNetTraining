@@ -19,39 +19,38 @@ Defines methods for all issue types:
 - `GetSummary()`
 - `AdvanceStatus(string newStatus)`
 
-### 🚀 Issue Types
-#### 🔧 Bug
+####  Bug Class
 - Field: `Severity` (e.g., High)
 - Overrides `Display()`
 - Implements `ReportStatus()` and `GetSummary()`
 
-#### 🛠️ Task
+#### Task
 - Field: `EstimatedHours`
 - Implements `ReportStatus()` and `GetSummary()`
 
-#### 🌟 FeatureRequest
+####  FeatureRequest Class
 - Fields: `RequestedBy`, `PlannedReleaseDate`
 - Implements `ReportStatus()` and `GetSummary()`
 
 ---
 
-## 🔄 Optional Enhancement
+##  Optional Enhancement
 - Counts and displays how many issues are in **Open**, **In Progress**, and **Closed** states
 
 ---
 
-## ▶️ How to Run the Project
+### How to Run the Project
 
-### ✅ Prerequisites
+### Prerequisites
 
 - .NET SDK installed (version 6 or later recommended)
 
-### 📌 Steps
+###  Steps
 
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day1proj1phase1
+   cd path\\to\\Day2proj1phase2
 
 2. **Build the project:**
 
