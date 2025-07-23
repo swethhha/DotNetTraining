@@ -22,17 +22,33 @@ This is a simple **Support Ticket Management Console Application** built using *
   - `DisplaySummary()` – show ticket summary including priority and created date.
 
 ---
-## How to Build and Run
+## ▶️ How to Run the Project
 
-### 📦 Requirements
-- [.NET SDK](https://dotnet.microsoft.com/download) (Version 6 or later)
+### ✅ Prerequisites
 
-### Build
+- .NET SDK installed (version 6 or later recommended)
 
-```bash
-dotnet build
+### 📌 Steps
 
-### Run the Application
+1. **Open terminal and navigate to project directory:**
 
-```bash
-dotnet run
+   ```bash
+   cd path\\to\\Day1proj1phase2
+
+2. **Build the project:**
+
+   ```bash
+    dotnet build
+2. **Run the application:**
+
+   ```bash
+    dotnet run
+
+---
+## Sample Output:
+
+<img width="508" height="512" alt="image" src="https://github.com/user-attachments/assets/9a3d8c10-b0f8-4afe-a54d-0077a191a9a9" />
+
+<img width="330" height="165" alt="image" src="https://github.com/user-attachments/assets/2613d70e-3819-4c1d-91b4-a2921d87393c" />
+
+ ---
