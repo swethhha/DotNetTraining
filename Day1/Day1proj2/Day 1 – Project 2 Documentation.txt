@@ -1,0 +1,183 @@
+Day 1 – Project 2 Documentation: SupportPortal
+This document walks you through building the SupportDesk Basic system to manage agents and support requests using Object-Oriented Programming in C#.
+
+1. Create the Project Folder Structure
+
+Day1proj2/
+├── Models/
+│   ├── SupportAgent.cs
+│   └── SupportRequest.cs
+└── Program.cs
+
+2. Create the SupportAgent Class
+File: Models/SupportAgent.cs
+
+namespace Day1proj2.Models
+{
+    public class SupportAgent
+    {
+        public int AgentId { get; }
+        public string Name { get; }
+        public string Department { get; }
+
+        public SupportAgent(int agentId, string name, string department)
+        {
+            AgentId = agentId;
+            Name = name;
+            Department = department;
+        }
+
+        public void DisplayAgent()
+        {
+            Console.WriteLine($"Agent ID: {AgentId}, Name: {Name}, Department: {Department}");
+        }
+    }
+}
+
+3. Create the SupportRequest Class
+File: Models/SupportRequest.cs
+
+using System;
+
+namespace Day1proj2.Models
+{
+    public class SupportRequest
+    {
+        public int RequestId { get; }
+        public string Issue { get; }
+        public string Status { get; private set; }
+        public DateTime CreatedOn { get; }
+        public int ResolutionTimeInHours { get; private set; }
+        public bool IsResolved { get; private set; }
+        public SupportAgent AssignedTo { get; private set; }
+
+        public SupportRequest(int requestId, string issue, SupportAgent assignedTo)
+        {
+            RequestId = requestId;
+            Issue = issue;
+            AssignedTo = assignedTo;
+            Status = "Open";
+            IsResolved = false;
+            ResolutionTimeInHours = 0;
+            CreatedOn = DateTime.Now;
+        }
+
+        public void MarkResolved()
+        {
+            if (!IsResolved)
+            {
+                IsResolved = true;
+                Status = "Closed";
+                ResolutionTimeInHours = (int)(DateTime.Now - CreatedOn).TotalHours;
+            }
+        }
+
+        public void Reassign(SupportAgent newAgent)
+        {
+            AssignedTo = newAgent;
+        }
+
+        public void DisplaySummary()
+        {
+            Console.WriteLine($"Request ID: {RequestId}");
+            Console.WriteLine($"Issue: {Issue}");
+            Console.WriteLine($"Status: {Status}");
+            Console.WriteLine($"Created On: {CreatedOn}");
+            Console.WriteLine($"Resolution Time (hrs): {ResolutionTimeInHours}");
+            Console.WriteLine($"Is Resolved: {IsResolved}");
+            Console.WriteLine($"Assigned To: {AssignedTo.Name} (Dept: {AssignedTo.Department})");
+            Console.WriteLine(new string('-', 40));
+        }
+    }
+}
+
+4. Create the Main Application File
+File: Program.cs
+
+using System;
+using Day1proj2.Models;
+
+namespace Day1proj2
+{
+    internal class Program
+    {
+        static void Main()
+        {
+            var agent1 = new SupportAgent(1, "Swetha", "Technical");
+            var agent2 = new SupportAgent(2, "Mirdula", "Billing");
+
+            agent1.DisplayAgent();
+            agent2.DisplayAgent();
+            Console.WriteLine();
+
+            var request1 = new SupportRequest(101, "Cannot access account", agent1);
+            var request2 = new SupportRequest(102, "Incorrect billing amount", agent2);
+
+            Console.WriteLine("Initial Requests Summary:");
+            request1.DisplaySummary();
+            request2.DisplaySummary();
+
+            Console.WriteLine("Marking Request 1 as resolved...");
+            request1.MarkResolved();
+
+            Console.WriteLine("Reassigning Request 2 to Swetha...");
+            request2.Reassign(agent1);
+
+            Console.WriteLine("Updated Requests Summary:");
+            request1.DisplaySummary();
+            request2.DisplaySummary();
+
+            Console.WriteLine("Press Enter to exit...");
+            Console.ReadLine();
+        }
+    }
+}
+
+5. Run & Test the Application
+Commands
+dotnet build
+dotnet run
+
+Expected Output:
+Agent ID: 1, Name: Swetha, Department: Technical
+Agent ID: 2, Name: Mirdula, Department: Billing
+
+Initial Requests Summary:
+Request ID: 101
+Issue: Cannot access account
+Status: Open
+Created On: 7/23/2025 12:00:00 AM
+Resolution Time (hrs): 0
+Is Resolved: False
+Assigned To: Swetha (Dept: Technical)
+----------------------------------------
+Request ID: 102
+Issue: Incorrect billing amount
+Status: Open
+Created On: 7/23/2025 12:00:00 AM
+Resolution Time (hrs): 0
+Is Resolved: False
+Assigned To: Mirdula (Dept: Billing)
+----------------------------------------
+
+Marking Request 1 as resolved...
+Reassigning Request 2 to Swetha...
+Updated Requests Summary:
+Request ID: 101
+Issue: Cannot access account
+Status: Closed
+Created On: 7/23/2025 12:00:00 AM
+Resolution Time (hrs): 0
+Is Resolved: True
+Assigned To: Swetha (Dept: Technical)
+----------------------------------------
+Request ID: 102
+Issue: Incorrect billing amount
+Status: Open
+Created On: 7/23/2025 12:00:00 AM
+Resolution Time (hrs): 0
+Is Resolved: False
+Assigned To: Swetha (Dept: Technical)
+----------------------------------------
+
+Press Enter to exit...
