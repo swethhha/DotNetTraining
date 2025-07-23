@@ -40,15 +40,33 @@ Defines methods for all issue types:
 
 ---
 
-## ▶️ How to Build & Run
+## ▶️ How to Run the Project
 
 ### ✅ Prerequisites
-- [.NET SDK 6.0+](https://dotnet.microsoft.com/download)
 
-### 🛠 Steps
+- .NET SDK installed (version 6 or later recommended)
 
-```bash
-cd path/to/Day2proj1phase2
-dotnet build
-dotnet run
+### 📌 Steps
+
+1. **Open terminal and navigate to project directory:**
+
+   ```bash
+   cd path\\to\\Day1proj1phase1
+
+2. **Build the project:**
+
+   ```bash
+    dotnet build
+2. **Run the application:**
+
+   ```bash
+    dotnet run
+
+---
+## Sample Output:
+
+<img width="598" height="533" alt="Screenshot 2025-07-23 142731" src="https://github.com/user-attachments/assets/5fde3f52-70c1-408a-982f-aeb4742c1f8c" />
+
+
+ ---
 
