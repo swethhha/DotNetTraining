@@ -1,0 +1,198 @@
+Day 2 – Project 2 Documentation: SupportDeskPro
+This document walks you through building your custom version of the SupportDeskPro ticketing system using Object-Oriented Programming concepts in C#.
+
+1. Create the Project Folder Structure
+
+Day2Proj2SupportDeskPro/
+├── Models/
+│   ├── SupportTicket.cs
+│   ├── BugReport.cs
+│   ├── FeatureRequest.cs
+│   └── IReportable.cs
+└── Program.cs
+
+2. Create the SupportTicket Base Class
+File: Models/SupportTicket.cs
+
+
+
+using System;
+
+namespace Day2Proj2SupportDeskPro.Models
+{
+    public class SupportTicket
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string CreatedBy { get; set; }
+        public string Status { get; set; } = "Open";
+
+        public virtual void DisplayDetails()
+        {
+            Console.WriteLine($"Ticket ID: {Id}");
+            Console.WriteLine($"Title: {Title}");
+            Console.WriteLine($"Description: {Description}");
+            Console.WriteLine($"Created By: {CreatedBy}");
+            Console.WriteLine($"Status: {Status}");
+        }
+
+        public void CloseTicket()
+        {
+            Status = "Closed";
+        }
+    }
+}
+3. Create the IReportable Interface
+File: Models/IReportable.cs
+
+
+namespace Day2Proj2SupportDeskPro.Models
+{
+    public interface IReportable
+    {
+        void ReportStatus();
+    }
+}
+4. Create the BugReport Class
+File: Models/BugReport.cs
+
+csharp
+Copy
+Edit
+using System;
+
+namespace Day2Proj2SupportDeskPro.Models
+{
+    public class BugReport : SupportTicket, IReportable
+    {
+        public string Severity { get; set; }
+
+        public override void DisplayDetails()
+        {
+            base.DisplayDetails();
+            Console.WriteLine($"Severity: {Severity}");
+        }
+
+        public void ReportStatus()
+        {
+            Console.WriteLine($"Bug Report [{Id}] is '{Status}' with severity '{Severity}'.");
+        }
+    }
+}
+5. Create the FeatureRequest Class
+File: Models/FeatureRequest.cs
+
+
+using System;
+
+namespace Day2Proj2SupportDeskPro.Models
+{
+    public class FeatureRequest : SupportTicket, IReportable
+    {
+        public string RequestedBy { get; set; }
+        public DateTime ETA { get; set; }
+
+        public override void DisplayDetails()
+        {
+            base.DisplayDetails();
+            Console.WriteLine($"Requested By: {RequestedBy}");
+            Console.WriteLine($"ETA: {ETA.ToShortDateString()}");
+        }
+
+        public void ReportStatus()
+        {
+            Console.WriteLine($"Feature Request [{Id}] is '{Status}', requested by {RequestedBy}, ETA: {ETA.ToShortDateString()}.");
+        }
+    }
+}
+6. Create the Main Application File
+File: Program.cs
+
+using System;
+using System.Collections.Generic;
+using Day2Proj2SupportDeskPro.Models;
+
+namespace Day2Proj2SupportDeskPro
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            BugReport bug = new BugReport
+            {
+                Id = 1,
+                Title = "App Crash",
+                Description = "App crashes on login.",
+                CreatedBy = "Tester",
+                Severity = "High"
+            };
+
+            FeatureRequest feature = new FeatureRequest
+            {
+                Id = 2,
+                Title = "Dark Mode",
+                Description = "Add dark mode to UI.",
+                CreatedBy = "Product Owner",
+                RequestedBy = "User Community",
+                ETA = DateTime.Now.AddDays(7)
+            };
+
+            List<SupportTicket> tickets = new List<SupportTicket> { bug, feature };
+
+            foreach (SupportTicket ticket in tickets)
+            {
+                Console.WriteLine("------ Ticket Details ------");
+                ticket.DisplayDetails();
+
+                if (ticket is IReportable)
+                {
+                    ((IReportable)ticket).ReportStatus();
+                }
+
+                ticket.CloseTicket();
+
+                Console.WriteLine("------ After Closing ------");
+                if (ticket is IReportable)
+                {
+                    ((IReportable)ticket).ReportStatus();
+                }
+
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("All tickets processed.");
+        }
+    }
+}
+7. Run & Test the Application
+Commands:
+
+dotnet build
+dotnet run
+
+Expected Output:
+------ Ticket Details ------
+Ticket ID: 1
+Title: App Crash
+Description: App crashes on login.
+Created By: Tester
+Status: Open
+Severity: High
+Bug Report [1] is 'Open' with severity 'High'.
+------ After Closing ------
+Bug Report [1] is 'Closed' with severity 'High'.
+
+------ Ticket Details ------
+Ticket ID: 2
+Title: Dark Mode
+Description: Add dark mode to UI.
+Created By: Product Owner
+Status: Open
+Requested By: User Community
+ETA: 07/30/2025
+Feature Request [2] is 'Open', requested by User Community, ETA: 07/30/2025.
+------ After Closing ------
+Feature Request [2] is 'Closed', requested by User Community, ETA: 07/30/2025.
+
+All tickets processed.
