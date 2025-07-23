@@ -30,4 +30,34 @@ A simple console-based **Issue Tracker** built using **C# and .NET**, demonstrat
   - `ReportStatus()` — prints progress message
 
 ---
+### How to Run the Project
 
+### Prerequisites
+
+- .NET SDK installed (version 6 or later recommended)
+
+###  Steps
+
+1. **Open terminal and navigate to project directory:**
+
+   ```bash
+   cd path\\to\\Day2proj1phase2
+
+2. **Build the project:**
+
+   ```bash
+    dotnet build
+2. **Run the application:**
+
+   ```bash
+    dotnet run
+
+---
+## Sample Output:
+
+
+<img width="612" height="241" alt="image" src="https://github.com/user-attachments/assets/799ff59c-77da-4717-9102-940205646087" />
+
+
+
+ ---
