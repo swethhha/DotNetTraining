@@ -1,4 +1,4 @@
-Day 1 – Project 2 Documentation: SupportPortal
+Day 1 – Project 2 Documentation: SupportPortal  
 This document walks you through building the SupportDesk Basic system to manage agents and support requests using Object-Oriented Programming in C#.
 
 1. Create the Project Folder Structure
@@ -9,7 +9,7 @@ Day1proj2/
 │   └── SupportRequest.cs
 └── Program.cs
 
-2. Create the SupportAgent Class
+2. Create the SupportAgent Class  
 File: Models/SupportAgent.cs
 
 namespace Day1proj2.Models
@@ -34,7 +34,7 @@ namespace Day1proj2.Models
     }
 }
 
-3. Create the SupportRequest Class
+3. Create the SupportRequest Class  
 File: Models/SupportRequest.cs
 
 using System;
@@ -91,7 +91,7 @@ namespace Day1proj2.Models
     }
 }
 
-4. Create the Main Application File
+4. Create the Main Application File  
 File: Program.cs
 
 using System;
@@ -133,8 +133,9 @@ namespace Day1proj2
     }
 }
 
-5. Run & Test the Application
-Commands
+5. Run & Test the Application  
+Commands:
+
 dotnet build
 dotnet run
 
@@ -180,4 +181,5 @@ Is Resolved: False
 Assigned To: Swetha (Dept: Technical)
 ----------------------------------------
 
+>>>>>>> 30d851b1b447896418fb6cf03b9b48040b21a170
 Press Enter to exit...

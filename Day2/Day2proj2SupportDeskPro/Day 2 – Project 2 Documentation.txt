@@ -14,8 +14,6 @@ Day2Proj2SupportDeskPro/
 2. Create the SupportTicket Base Class
 File: Models/SupportTicket.cs
 
-
-
 using System;
 
 namespace Day2Proj2SupportDeskPro.Models
@@ -43,9 +41,9 @@ namespace Day2Proj2SupportDeskPro.Models
         }
     }
 }
+
 3. Create the IReportable Interface
 File: Models/IReportable.cs
-
 
 namespace Day2Proj2SupportDeskPro.Models
 {
@@ -54,12 +52,10 @@ namespace Day2Proj2SupportDeskPro.Models
         void ReportStatus();
     }
 }
+
 4. Create the BugReport Class
 File: Models/BugReport.cs
 
-csharp
-Copy
-Edit
 using System;
 
 namespace Day2Proj2SupportDeskPro.Models
@@ -80,12 +76,11 @@ namespace Day2Proj2SupportDeskPro.Models
         }
     }
 }
+
 5. Create the FeatureRequest Class
 File: Models/FeatureRequest.cs
 
-
 using System;
-
 namespace Day2Proj2SupportDeskPro.Models
 {
     public class FeatureRequest : SupportTicket, IReportable
@@ -106,6 +101,7 @@ namespace Day2Proj2SupportDeskPro.Models
         }
     }
 }
+
 6. Create the Main Application File
 File: Program.cs
 
@@ -165,6 +161,7 @@ namespace Day2Proj2SupportDeskPro
         }
     }
 }
+
 7. Run & Test the Application
 Commands:
 
