@@ -61,7 +61,7 @@ Implemented by both ticket types to support custom reporting:
 
    
 bash
-   cd path\\to\\Day2proj1phase2
+   cd path\\to\\Day2proj2SupportDeskPro
 
 2. **Build the project:**
 bash
