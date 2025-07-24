@@ -1,0 +1,242 @@
+Day 3 – Project 2 Documentation: BookRentalSystem
+This document walks you through building the BookRentalSystem, a console-based app to manage Fiction and Non-Fiction book rentals using Object-Oriented Programming principles in C#.
+
+1. Create the Project Folder Structure
+
+BookRentalSystem/
+├── Models/
+│   ├── Book.cs
+│   ├── Fiction.cs
+│   ├── NonFiction.cs
+│   └── IRentable.cs
+├── Services/
+│   ├── IBookService.cs
+│   └── BookService.cs
+└── Program.cs
+
+2. Create the Book Base Class
+File: Models/Book.cs
+
+namespace BookRentalSystem.Models
+{
+    public abstract class Book
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Author { get; set; } = "";
+        public bool IsAvailable { get; set; } = true;
+
+        public abstract void Display();
+    }
+}
+
+3. Create the IRentable Interface
+File: Models/IRentable.cs
+
+
+namespace BookRentalSystem.Models
+{
+    public interface IRentable
+    {
+        void Rent();
+        void Return();
+        void ReportStatus();
+    }
+}
+
+4. Create the Fiction Class
+File: Models/Fiction.cs
+
+namespace BookRentalSystem.Models
+{
+    public class Fiction : Book, IRentable
+    {
+        public string Genre { get; set; } = "";
+
+        public void Rent() => IsAvailable = false;
+        public void Return() => IsAvailable = true;
+
+        public void ReportStatus()
+        {
+            Console.WriteLine($"Fiction #{Id}: {(IsAvailable ? "Available" : "Rented")} | Genre: {Genre}");
+        }
+
+        public override void Display()
+        {
+            Console.WriteLine($"[Fiction] \"{Title}\" by {Author} | Genre: {Genre} | Status: {(IsAvailable ? "Available" : "Rented")}");
+        }
+    }
+}
+
+5. Create the NonFiction Class
+File: Models/NonFiction.cs
+
+
+namespace BookRentalSystem.Models
+{
+    public class NonFiction : Book, IRentable
+    {
+        public string Category { get; set; } = "";
+
+        public void Rent() => IsAvailable = false;
+        public void Return() => IsAvailable = true;
+
+        public void ReportStatus()
+        {
+            Console.WriteLine($"NonFiction #{Id}: {(IsAvailable ? "Available" : "Rented")} | Category: {Category}");
+        }
+
+        public override void Display()
+        {
+            Console.WriteLine($"[Non-Fiction] \"{Title}\" by {Author} | Category: {Category} | Status: {(IsAvailable ? "Available" : "Rented")}");
+        }
+    }
+}
+
+6. Create the IBookService Interface
+File: Services/IBookService.cs
+
+
+using BookRentalSystem.Models;
+namespace BookRentalSystem.Services
+{
+    public interface IBookService
+    {
+        void DisplayAll(List<Book> books);
+        void ShowRentalStatus(List<IRentable> items);
+    }
+}
+
+7. Create the BookService Implementation
+File: Services/BookService.cs
+
+
+using BookRentalSystem.Models;
+namespace BookRentalSystem.Services
+{
+    public class BookService : IBookService
+    {
+        public void DisplayAll(List<Book> books)
+        {
+            Console.WriteLine("=== Book List ===");
+            foreach (var book in books)
+            {
+                book.Display();
+            }
+            Console.WriteLine();
+        }
+
+        public void ShowRentalStatus(List<IRentable> items)
+        {
+            foreach (var item in items)
+            {
+                item.ReportStatus();
+            }
+            Console.WriteLine();
+        }
+    }
+}
+
+8. Create the Main Program
+File: Program.cs
+
+using BookRentalSystem.Models;
+using BookRentalSystem.Services;
+using System;
+using System.Collections.Generic;
+
+namespace BookRentalSystem
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Book fictionBook = new Fiction
+            {
+                Id = 1,
+                Title = "The Alchemist",
+                Author = "Paulo Coelho",
+                Genre = "Adventure"
+            };
+
+            Book nonFictionBook = new NonFiction
+            {
+                Id = 2,
+                Title = "Clean Code",
+                Author = "Robert C. Martin",
+                Category = "Programming"
+            };
+
+            List<Book> books = new List<Book> { fictionBook, nonFictionBook };
+            List<IRentable> rentableBooks = new List<IRentable> {
+                (IRentable)fictionBook,
+                (IRentable)nonFictionBook
+            };
+
+            IBookService bookService = new BookService();
+
+            Console.WriteLine("Welcome to Book Rental System\n");
+
+            Console.WriteLine("Available Books:\n---------------------------");
+            bookService.DisplayAll(books);
+
+            Console.WriteLine("\nRenting Books...");
+            foreach (var item in rentableBooks)
+            {
+                item.Rent();
+            }
+
+            Console.WriteLine("\nRental Status After Renting:\n---------------------------");
+            bookService.ShowRentalStatus(rentableBooks);
+
+            Console.WriteLine("\nReturning Books...");
+            foreach (var item in rentableBooks)
+            {
+                item.Return();
+            }
+
+            Console.WriteLine("\nRental Status After Returning:\n---------------------------");
+            bookService.ShowRentalStatus(rentableBooks);
+
+            Console.WriteLine("\nThank you for using Book Rental System!");
+        }
+    }
+}
+
+9. Run & Test the Application
+Commands:
+
+dotnet build
+dotnet run
+
+Expected Output:
+
+Welcome to Book Rental System
+
+Available Books:
+---------------------------
+=== Book List ===
+[Fiction] "The Alchemist" by Paulo Coelho | Genre: Adventure | Status: Available
+[Non-Fiction] "Clean Code" by Robert C. Martin | Category: Programming | Status: Available
+
+
+Renting Books...
+
+Rental Status After Renting:
+---------------------------
+Fiction #1: Rented | Genre: Adventure
+NonFiction #2: Rented | Category: Programming
+
+
+Returning Books...
+
+Rental Status After Returning:
+---------------------------
+Fiction #1: Available | Genre: Adventure
+NonFiction #2: Available | Category: Programming
+
+
+Thank you for using Book Rental System!
+
+GIT LINK:
+https://github.com/swethhha/DotNetTraining/tree/main/Day3/BookRentalSystem
