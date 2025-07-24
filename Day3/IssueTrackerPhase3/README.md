@@ -65,7 +65,7 @@ This is a **C# Console-based Issue Tracking System** designed with **SOLID princ
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day2proj1phase2
+   cd path\\to\\IssueTrackerPhase3
 
 2. **Build the project:**
 
