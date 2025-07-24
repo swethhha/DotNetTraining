@@ -41,7 +41,7 @@ A simple console-based **Issue Tracker** built using **C# and .NET**, demonstrat
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day2proj1phase2
+   cd path\\to\\Day2proj1phase1
 
 2. **Build the project:**
 
