@@ -33,7 +33,7 @@ This is a simple **Support Ticket Management Console Application** built using *
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day1proj1phase2
+   cd path\\to\\Day1proj2
 
 2. **Build the project:**
 
