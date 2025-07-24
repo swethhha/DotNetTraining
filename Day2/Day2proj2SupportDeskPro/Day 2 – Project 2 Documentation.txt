@@ -193,3 +193,6 @@ Feature Request [2] is 'Open', requested by User Community, ETA: 07/30/2025.
 Feature Request [2] is 'Closed', requested by User Community, ETA: 07/30/2025.
 
 All tickets processed.
+
+GIT LINK:
+https://github.com/swethhha/DotNetTraining/tree/main/Day2/Day2proj2SupportDeskPro
