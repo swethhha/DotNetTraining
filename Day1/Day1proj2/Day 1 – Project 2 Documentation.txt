@@ -181,5 +181,7 @@ Is Resolved: False
 Assigned To: Swetha (Dept: Technical)
 ----------------------------------------
 
->>>>>>> 30d851b1b447896418fb6cf03b9b48040b21a170
 Press Enter to exit...
+
+GIT LINK:
+https://github.com/swethhha/DotNetTraining/tree/main/Day1/Day1proj2
