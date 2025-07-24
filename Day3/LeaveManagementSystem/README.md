@@ -38,7 +38,7 @@ A C# console-based Leave Management System built using **Object-Oriented Program
 1. **Open terminal and navigate to project directory:**
 
    ```bash
-   cd path\\to\\Day2proj1phase2
+   cd path\\to\\LeaveManagementSystem
 
 2. **Build the project:**
 
