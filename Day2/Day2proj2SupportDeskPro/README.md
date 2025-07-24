@@ -59,17 +59,16 @@ Implemented by both ticket types to support custom reporting:
 
 1. **Open terminal and navigate to project directory:**
 
-   
-bash
+   ```bash
    cd path\\to\\Day2proj2SupportDeskPro
 
 2. **Build the project:**
-bash
+
+   ```bash
     dotnet build
 2. **Run the application:**
 
-   
-bash
+   ```bash
     dotnet run
 
 ---
