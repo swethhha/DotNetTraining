@@ -20,11 +20,11 @@ INSERT INTO Status (StatusName) VALUES
 
 
 INSERT INTO Bugs (Title, Description, Priority, ProjectId, AssignedTo, StatusId) VALUES
-('App crashes on login', 'Crash occurs when invalid credentials are entered.', 'High', 1, 1, 1),  -- Ram
-('Search not working', 'Search returns no results on valid input.', 'Medium', 2, 2, 2), -- Swetha
-('Invoice total incorrect', 'Discount calculation wrong for bulk orders.', 'High', 1, 4, 1), -- Meena
-('UI glitch in dashboard', 'Button overlaps on mobile view.', 'Low', 3, 1, 2), -- Ram
-('Profile not saving', 'User profile changes are not stored.', 'Medium', 3, 2, 3); -- Swetha
+('App crashes on login', 'Crash occurs when invalid credentials are entered.', 'High', 1, 1, 1),  
+('Search not working', 'Search returns no results on valid input.', 'Medium', 2, 2, 2), 
+('Invoice total incorrect', 'Discount calculation wrong for bulk orders.', 'High', 1, 4, 1), 
+('UI glitch in dashboard', 'Button overlaps on mobile view.', 'Low', 3, 1, 2),
+('Profile not saving', 'User profile changes are not stored.', 'Medium', 3, 2, 3); 
 
 
 PRINT '===== USERS TABLE =====';
