@@ -27,14 +27,10 @@ INSERT INTO Bugs (Title, Description, Priority, ProjectId, AssignedTo, StatusId)
 ('Profile not saving', 'User profile changes are not stored.', 'Medium', 3, 2, 3); 
 
 
-PRINT '===== USERS TABLE =====';
 SELECT * FROM Users;
 
-PRINT '===== PROJECTS TABLE =====';
 SELECT * FROM Projects;
 
-PRINT '===== STATUS TABLE =====';
 SELECT * FROM Status;
 
-PRINT '===== BUGS TABLE =====';
 SELECT * FROM Bugs;
