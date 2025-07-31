@@ -43,8 +43,6 @@ namespace EFCoreDbFirstDemoPhase2
             }
         }
 
-        // ---------------- COURSE CRUD ----------------
-
         static void AddCourse(StudentCourseDbContext context)
         {
             Console.Write("Enter Course Name: ");
