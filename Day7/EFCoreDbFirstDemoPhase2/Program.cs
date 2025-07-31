@@ -85,7 +85,7 @@ namespace EFCoreDbFirstDemoPhase2
                     Console.WriteLine("Deleted employee Ali.");
                 }
 
-                // Final display after update & delete
+
                 Console.WriteLine("\n------ Final Employee List ------");
                 var finalEmployees = context.Employees.Select(e => new
                 {
