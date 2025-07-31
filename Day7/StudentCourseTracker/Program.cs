@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using StudentCourseTracker.Models;
 
-namespace StudentCourseTracker 
+namespace StudentCourseTracker
 {
     class Program
     {
