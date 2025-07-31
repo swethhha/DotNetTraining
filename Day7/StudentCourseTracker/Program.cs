@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using EFCoreDbFirstDemoPhase2.Models;
+using StudentCourseTracker.Models;
 
 namespace EFCoreDbFirstDemoPhase2
 {
