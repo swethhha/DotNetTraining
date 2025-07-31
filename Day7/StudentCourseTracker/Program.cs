@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using EFCoreDbFirstDemoPhase2.Models;
+using StudentCourseTracker.Models;
 
-namespace EFCoreDbFirstDemoPhase2
+namespace StudentCourseTracker 
 {
     class Program
     {
@@ -43,7 +43,6 @@ namespace EFCoreDbFirstDemoPhase2
             }
         }
 
-        // ---------------- COURSE CRUD ----------------
 
         static void AddCourse(StudentCourseDbContext context)
         {
@@ -134,7 +133,7 @@ namespace EFCoreDbFirstDemoPhase2
                 return;
             }
 
-            context.Students.RemoveRange(course.Students); // remove students if any
+            context.Students.RemoveRange(course.Students); 
             context.Courses.Remove(course);
             context.SaveChanges();
             Console.WriteLine("Course deleted.");
@@ -146,7 +145,6 @@ namespace EFCoreDbFirstDemoPhase2
             }
         }
 
-        // ---------------- STUDENT CRUD ----------------
 
         static void AddStudent(StudentCourseDbContext context)
         {
