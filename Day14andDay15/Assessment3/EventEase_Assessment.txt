@@ -1,5 +1,45 @@
+CODE DEBUGGING :
 
-Day 14 & 15 – Project 3 Documentation: EventEase – Event Management System (Web API)
+Cooked Code:
+public class EventService : IEventService
+{
+    private readonly IEventRepository _eventRepo;
+
+    public EventService(IEventRepository eventRepo)
+    {
+        _eventRepo = eventRepo;
+    }
+
+    public Event CreateEvent(Event newEvent)
+    {
+        // Fix 1: Check if event is null to avoid null reference exception
+        if (newEvent == null)
+            throw new ArgumentNullException(nameof(newEvent), "Event cannot be null");
+
+        // Fix 2: Validate that title is not null or whitespace
+        if (string.IsNullOrWhiteSpace(newEvent.Title))
+            throw new ArgumentException("Title cannot be empty or whitespace", nameof(newEvent.Title));
+
+        // Fix 3: (Optional enhancement) Ensure title has a minimum length
+        if (newEvent.Title.Length < 3)
+            throw new ArgumentException("Title must be at least 3 characters long", nameof(newEvent.Title));
+
+        // Fix 4: Use meaningful parameter name instead of 'event' (which is a keyword)
+        return _eventRepo.Add(newEvent);
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------
+| Issue                         | Fix                                          | Why                                                 |
+--------------------------------------------------------------------------------------------------------------------------------------
+| 'event' used as parameter     | Renamed to 'newEvent'                        | 'event' is a C# keyword, can cause confusion/errors |
+| Title length check incorrect  | Used IsNullOrWhiteSpace + Length < 3         | Length < 0 is never true; better validation needed  |
+| No null check for event       | Added null check for newEvent                | Prevents NullReferenceException                     |
+| Poor error types              | Used ArgumentNullException/ArgumentException | Provides clearer and more accurate error messages   |
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+Day 15 – Project 3 Documentation: EventEase – Event Management System (Web API)
 ======================================================================================
 
 This document describes the structure and development steps for building the EventEase project using ASP.NET Core Web API, EF Core, DTOs, and DataAnnotations for validation.
