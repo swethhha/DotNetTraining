@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-
-namespace HostelManagement.Core.DTOs
+﻿namespace HostelManagement.Core.DTOs
 {
     public class StaffResponseDTO
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public int Capacity { get; set; }
 
-        // Max rooms = 5, but just return whatever is assigned
-        public List<RoomResponseDTO> Rooms { get; set; } = new();
+        // Dynamically calculated
+        public int RoomsManaged { get; set; }
+        public List<string> RoomNumbers { get; set; } = new();
     }
 }

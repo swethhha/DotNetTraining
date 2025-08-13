@@ -1,37 +1,39 @@
 ﻿using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HostelManagement.Infrastructure.Repositories
 {
     public class StaffRepository : IStaffRepository
     {
-        private readonly List<Staff> _staffMembers = new();
+        private readonly List<Staff> _staffs = new();
         private int _nextId = 1;
 
         public void Add(Staff entity)
         {
             entity.Id = _nextId++;
-            _staffMembers.Add(entity);
+            _staffs.Add(entity);
         }
 
         public void Update(Staff entity)
         {
             var existing = GetById(entity.Id);
-            if (existing == null) return;
-            existing.Name = entity.Name;
-            existing.Rooms = entity.Rooms;
+            if (existing != null)
+            {
+                existing.Name = entity.Name;
+                existing.Capacity = entity.Capacity;
+                existing.Students = entity.Students;
+            }
         }
 
         public void Delete(int id)
         {
-            var s = GetById(id);
-            if (s != null) _staffMembers.Remove(s);
+            var existing = GetById(id);
+            if (existing != null)
+                _staffs.Remove(existing);
         }
 
-        public Staff? GetById(int id) => _staffMembers.FirstOrDefault(s => s.Id == id);
+        public Staff? GetById(int id) => _staffs.FirstOrDefault(s => s.Id == id);
 
-        public List<Staff> GetAll() => _staffMembers;
+        public List<Staff> GetAll() => _staffs;
     }
 }

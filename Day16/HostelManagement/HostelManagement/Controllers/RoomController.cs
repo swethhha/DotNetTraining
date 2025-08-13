@@ -30,30 +30,12 @@ namespace HostelManagement.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(RoomRequestDTO roomDto)
+        public IActionResult AddRoom(RoomRequestDTO roomDto)
         {
             _roomService.AddRoom(roomDto);
-            return CreatedAtAction(nameof(GetById), new { id = roomDto.RoomNumber }, roomDto);
+            return Ok("Room added successfully.");
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, RoomRequestDTO roomDto)
-        {
-            var existing = _roomService.GetRoomById(id);
-            if (existing == null) return NotFound();
 
-            _roomService.UpdateRoom(id, roomDto);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var existing = _roomService.GetRoomById(id);
-            if (existing == null) return NotFound();
-
-            _roomService.DeleteRoom(id);
-            return NoContent();
-        }
     }
 }

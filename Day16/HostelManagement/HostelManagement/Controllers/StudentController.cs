@@ -2,58 +2,46 @@
 using HostelManagement.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HostelManagement.API.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class StudentController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class StudentController : ControllerBase
+    private readonly IStudentService _studentService;
+
+    public StudentController(IStudentService studentService)
     {
-        private readonly IStudentService _studentService;
+        _studentService = studentService;
+    }
 
-        public StudentController(IStudentService studentService)
-        {
-            _studentService = studentService;
-        }
-
-        [HttpGet]
-        public ActionResult<List<StudentResponseDTO>> GetAll()
-        {
-            return Ok(_studentService.GetAllStudents());
-        }
-
-        [HttpGet("{id}")]
-        public ActionResult<StudentResponseDTO> GetById(int id)
-        {
-            var student = _studentService.GetStudentById(id);
-            if (student == null) return NotFound();
-            return Ok(student);
-        }
-
-        [HttpPost]
-        public IActionResult Create(StudentRequestDTO studentDto)
+    [HttpPost]
+    public IActionResult Create(StudentRequestDTO studentDto)
+    {
+        try
         {
             _studentService.AddStudent(studentDto);
-            return StatusCode(201);
+            return Ok("Student added successfully");
         }
-
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, StudentRequestDTO studentDto)
+        catch (Exception ex)
         {
-            var existing = _studentService.GetStudentById(id);
-            if (existing == null) return NotFound();
-
-            _studentService.UpdateStudent(id, studentDto);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var existing = _studentService.GetStudentById(id);
-            if (existing == null) return NotFound();
-
-            _studentService.DeleteStudent(id);
-            return NoContent();
+            return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet]
+    public IActionResult GetAll()
+    {
+        var students = _studentService.GetAllStudents();
+        return Ok(students);
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult GetById(int id)
+    {
+        var student = _studentService.GetStudentById(id);
+        if (student == null)
+            return NotFound();
+        return Ok(student);
+    }
+
+
 }

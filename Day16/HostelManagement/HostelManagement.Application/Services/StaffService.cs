@@ -1,7 +1,8 @@
 ﻿using HostelManagement.Core.DTOs;
-using HostelManagement.Core.DTOs.HostelManagement.Core.DTOs;
 using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HostelManagement.Application.Services
@@ -9,77 +10,73 @@ namespace HostelManagement.Application.Services
     public class StaffService : IStaffService
     {
         private readonly IStaffRepository _staffRepository;
+        private readonly IRoomRepository _roomRepository;
 
-        public StaffService(IStaffRepository staffRepository)
+        public StaffService(IStaffRepository staffRepository, IRoomRepository roomRepository)
         {
             _staffRepository = staffRepository;
+            _roomRepository = roomRepository;
         }
 
         public void AddStaff(StaffRequestDTO staffDto)
         {
-            var staff = new Staff { Name = staffDto.Name };
-            _staffRepository.Add(staff);
+            var newStaff = new Staff
+            {
+                Name = staffDto.Name,
+                Capacity = 5
+            };
+            _staffRepository.Add(newStaff);
         }
 
         public void UpdateStaff(int id, StaffRequestDTO staffDto)
         {
-            var staff = _staffRepository.GetById(id);
-            if (staff == null) throw new KeyNotFoundException("Staff not found");
-            staff.Name = staffDto.Name;
-            _staffRepository.Update(staff);
+            var existingStaff = _staffRepository.GetById(id);
+            if (existingStaff != null)
+            {
+                existingStaff.Name = staffDto.Name;
+                _staffRepository.Update(existingStaff);
+            }
         }
 
-        public void DeleteStaff(int id)
-        {
-            _staffRepository.Delete(id);
-        }
+        public void DeleteStaff(int id) => _staffRepository.Delete(id);
 
         public StaffResponseDTO? GetStaffById(int id)
         {
             var staff = _staffRepository.GetById(id);
             if (staff == null) return null;
 
+            var rooms = staff.Students
+                .Select(st => st.Room)
+                .Where(r => r != null)
+                .ToList();
+
             return new StaffResponseDTO
             {
                 Id = staff.Id,
                 Name = staff.Name,
-                Rooms = staff.Rooms.Select(r => new RoomResponseDTO
-                {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    StaffId = r.StaffId,
-                    StaffName = r.Staff?.Name,
-                    Students = r.Students.Select(s => new StudentResponseDTO
-                    {
-                        Id = s.Id,
-                        Name = s.Name,
-                        RoomId = s.RoomId,
-                        RoomNumber = s.Room?.RoomNumber
-                    }).ToList()
-                }).ToList()
+                Capacity = staff.Capacity,
+                RoomsManaged = rooms.Select(r => r!.Id).Distinct().Count(),
+                RoomNumbers = rooms.Select(r => r!.RoomNumber ?? string.Empty).ToList()
             };
         }
 
-        public System.Collections.Generic.List<StaffResponseDTO> GetAllStaff()
+        public List<StaffResponseDTO> GetAllStaff()
         {
-            return _staffRepository.GetAll().Select(st => new StaffResponseDTO
+            return _staffRepository.GetAll().Select(staff =>
             {
-                Id = st.Id,
-                Name = st.Name,
-                Rooms = st.Rooms.Select(r => new RoomResponseDTO
+                var rooms = staff.Students
+                    .Select(st => st.Room)
+                    .Where(r => r != null)
+                    .ToList();
+
+                return new StaffResponseDTO
                 {
-                    Id = r.Id,
-                    RoomNumber = r.RoomNumber,
-                    StaffId = r.StaffId,
-                    StaffName = r.Staff?.Name,
-                    Students = r.Students.Select(s => new StudentResponseDTO
-                    {
-                        Id = s.Id,
-                        Name = s.Name,
-                        RoomId = s.RoomId,
-                        RoomNumber = s.Room?.RoomNumber
-                    }).ToList()
-                }).ToList()
+                    Id = staff.Id,
+                    Name = staff.Name,
+                    Capacity = staff.Capacity,
+                    RoomsManaged = rooms.Select(r => r!.Id).Distinct().Count(),
+                    RoomNumbers = rooms.Select(r => r!.RoomNumber ?? string.Empty).ToList()
+                };
             }).ToList();
         }
     }

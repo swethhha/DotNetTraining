@@ -1,5 +1,4 @@
 ﻿using HostelManagement.Core.DTOs;
-using HostelManagement.Core.DTOs.HostelManagement.Core.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;

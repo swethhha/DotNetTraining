@@ -2,6 +2,7 @@
 using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HostelManagement.Application.Services
@@ -10,137 +11,98 @@ namespace HostelManagement.Application.Services
     {
         private readonly IStudentRepository _studentRepository;
         private readonly IRoomRepository _roomRepository;
+        private readonly IStaffRepository _staffRepository;
 
-        public StudentService(IStudentRepository studentRepository, IRoomRepository roomRepository)
+        public StudentService(IStudentRepository studentRepo, IRoomRepository roomRepo, IStaffRepository staffRepo)
         {
-            _studentRepository = studentRepository;
-            _roomRepository = roomRepository;
+            _studentRepository = studentRepo;
+            _roomRepository = roomRepo;
+            _staffRepository = staffRepo;
         }
 
         public void AddStudent(StudentRequestDTO studentDto)
         {
-            if (string.IsNullOrWhiteSpace(studentDto.Name))
-                throw new ArgumentException("Name is required", nameof(studentDto.Name));
+            var availableRoom = _roomRepository.GetAll()
+                .FirstOrDefault(r => r.Students.Count < r.Capacity);
 
-            Room? assignedRoom = null;
+            if (availableRoom == null)
+                throw new Exception("No available rooms. Please create a new room first.");
 
-            // 1) try preferred room (if provided)
-            if (studentDto.PreferredRoomId.HasValue)
-            {
-                var pref = _roomRepository.GetById(studentDto.PreferredRoomId.Value);
-                if (pref != null && pref.Students.Count < pref.Capacity)
-                {
-                    assignedRoom = pref;
-                }
-                else
-                {
-                    // preferred room either doesn't exist or is full -> ignore preferred and auto-assign
-                    assignedRoom = null;
-                }
-            }
+            var availableStaff = _staffRepository.GetAll()
+                .FirstOrDefault(s => s.Students.Select(st => st.RoomId).Distinct().Count() < s.Capacity);
 
-            // 2) find first room with space
-            if (assignedRoom == null)
-            {
-                assignedRoom = _roomRepository.GetAll().FirstOrDefault(r => r.Students.Count < r.Capacity);
-            }
+            if (availableStaff == null)
+                throw new Exception("No available staff. Please add a new staff member.");
 
-            // 3) if still none, create a new room
-            if (assignedRoom == null)
-            {
-                var nextNumber = _roomRepository.GetAll().Count + 1;
-                var newRoom = new Room
-                {
-                    RoomNumber = $"R{nextNumber:000}"
-                    // Capacity is fixed to 4 in entity
-                };
-                _roomRepository.Add(newRoom);
-                assignedRoom = newRoom;
-            }
-
-            // 4) create student and set nav props
-            var student = new Student
+            var newStudent = new Student
             {
                 Name = studentDto.Name,
-                RoomId = assignedRoom.Id,
-                Room = assignedRoom
+                Department = studentDto.Department,
+                RoomId = availableRoom.Id,
+                StaffId = availableStaff.Id,
+                Room = availableRoom,      // Link navigation property
+                Staff = availableStaff     // Link navigation property
             };
 
-            _studentRepository.Add(student);
+            availableRoom.Students.Add(newStudent);
+            availableStaff.Students.Add(newStudent);
 
-            // add to room's Students collection
-            assignedRoom.Students.Add(student);
+            _studentRepository.Add(newStudent);
         }
 
         public void UpdateStudent(int id, StudentRequestDTO studentDto)
         {
-            var existing = _studentRepository.GetById(id) ?? throw new KeyNotFoundException("Student not found");
-            existing.Name = studentDto.Name;
-
-            // if preferred room specified and different, attempt move
-            if (studentDto.PreferredRoomId.HasValue && studentDto.PreferredRoomId.Value != existing.RoomId)
+            var student = _studentRepository.GetById(id);
+            if (student != null)
             {
-                var newRoom = _roomRepository.GetById(studentDto.PreferredRoomId.Value) ?? throw new KeyNotFoundException("Room not found");
-                if (newRoom.Students.Count >= newRoom.Capacity) throw new InvalidOperationException("Room is full");
-
-                // remove from old room collection
-                if (existing.RoomId.HasValue)
-                {
-                    var oldRoom = _roomRepository.GetById(existing.RoomId.Value);
-                    if (oldRoom != null)
-                    {
-                        var s = oldRoom.Students.FirstOrDefault(x => x.Id == existing.Id);
-                        if (s != null) oldRoom.Students.Remove(s);
-                    }
-                }
-
-                // assign new room
-                existing.RoomId = newRoom.Id;
-                existing.Room = newRoom;
-                newRoom.Students.Add(existing);
+                student.Name = studentDto.Name;
+                student.Department = studentDto.Department;
+                _studentRepository.Update(student);
             }
-
-            _studentRepository.Update(existing);
         }
 
-        public void DeleteStudent(int id)
-        {
-            var existing = _studentRepository.GetById(id) ?? throw new KeyNotFoundException("Student not found");
-
-            if (existing.RoomId.HasValue)
-            {
-                var room = _roomRepository.GetById(existing.RoomId.Value);
-                if (room != null)
-                {
-                    var s = room.Students.FirstOrDefault(x => x.Id == existing.Id);
-                    if (s != null) room.Students.Remove(s);
-                }
-            }
-
-            _studentRepository.Delete(id);
-        }
+        public void DeleteStudent(int id) => _studentRepository.Delete(id);
 
         public StudentResponseDTO? GetStudentById(int id)
         {
-            var s = _studentRepository.GetById(id);
-            if (s == null) return null;
+            var student = _studentRepository.GetById(id);
+            if (student == null) return null;
+
+            // Ensure Room and Staff are linked if missing
+            if (student.Room == null)
+                student.Room = _roomRepository.GetAll().FirstOrDefault(r => r.Id == student.RoomId);
+
+            if (student.Staff == null)
+                student.Staff = _staffRepository.GetAll().FirstOrDefault(s => s.Id == student.StaffId);
+
             return new StudentResponseDTO
             {
-                Id = s.Id,
-                Name = s.Name,
-                RoomId = s.RoomId,
-                RoomNumber = s.Room?.RoomNumber
+                Id = student.Id,
+                Name = student.Name,
+                Department = student.Department,
+                RoomNumber = student.Room?.RoomNumber,
+                StaffName = student.Staff?.Name
             };
         }
 
-        public System.Collections.Generic.List<StudentResponseDTO> GetAllStudents()
+        public List<StudentResponseDTO> GetAllStudents()
         {
-            return _studentRepository.GetAll().Select(s => new StudentResponseDTO
+            var rooms = _roomRepository.GetAll();
+            var staff = _staffRepository.GetAll();
+
+            return _studentRepository.GetAll().Select(s =>
             {
-                Id = s.Id,
-                Name = s.Name,
-                RoomId = s.RoomId,
-                RoomNumber = s.Room?.RoomNumber
+                var room = rooms.FirstOrDefault(r => r.Id == s.RoomId);
+                var staffMember = staff.FirstOrDefault(st => st.Id == s.StaffId);
+
+                return new StudentResponseDTO
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Department = s.Department,
+                    RoomNumber = room?.RoomNumber,
+                    StaffName = staffMember?.Name
+                };
             }).ToList();
         }
     }

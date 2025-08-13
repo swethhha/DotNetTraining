@@ -1,5 +1,4 @@
 ﻿using HostelManagement.Core.DTOs;
-using HostelManagement.Core.DTOs.HostelManagement.Core.DTOs;
 using HostelManagement.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,27 +33,9 @@ namespace HostelManagement.API.Controllers
         public IActionResult Create(StaffRequestDTO staffDto)
         {
             _staffService.AddStaff(staffDto);
-            return StatusCode(201);
+            return Ok("Staff created successfully");
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, StaffRequestDTO staffDto)
-        {
-            var existing = _staffService.GetStaffById(id);
-            if (existing == null) return NotFound();
 
-            _staffService.UpdateStaff(id, staffDto);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var existing = _staffService.GetStaffById(id);
-            if (existing == null) return NotFound();
-
-            _staffService.DeleteStaff(id);
-            return NoContent();
-        }
     }
 }

@@ -1,7 +1,5 @@
 ﻿using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HostelManagement.Infrastructure.Repositories
 {
@@ -12,28 +10,26 @@ namespace HostelManagement.Infrastructure.Repositories
 
         public void Add(Room entity)
         {
-            // assign id first so GenerateRoomNumber() can use it
             entity.Id = _nextId++;
-            entity.GenerateRoomNumber();
             _rooms.Add(entity);
         }
 
         public void Update(Room entity)
         {
             var existing = GetById(entity.Id);
-            if (existing == null) return;
-
-            existing.RoomNumber = entity.RoomNumber;
-            existing.StaffId = entity.StaffId;
-            existing.Staff = entity.Staff;
-            existing.Students = entity.Students;
-            // Capacity is fixed in entity, no update needed
+            if (existing != null)
+            {
+                existing.RoomNumber = entity.RoomNumber;
+                existing.Capacity = entity.Capacity;
+                existing.Students = entity.Students;
+            }
         }
 
         public void Delete(int id)
         {
-            var room = GetById(id);
-            if (room != null) _rooms.Remove(room);
+            var existing = GetById(id);
+            if (existing != null)
+                _rooms.Remove(existing);
         }
 
         public Room? GetById(int id) => _rooms.FirstOrDefault(r => r.Id == id);
