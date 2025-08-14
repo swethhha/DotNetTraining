@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BankPro.Application\BankPro.Application.csproj" />
+    <ProjectReference Include="..\BankPro.Core\BankPro.Core.csproj" />
+    <ProjectReference Include="..\BankPro.Infrastructure\BankPro.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
