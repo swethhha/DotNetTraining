@@ -1579,3 +1579,7 @@ namespace BankPro.Tests.Services
 Then browse to https://localhost:{port}/swagger to explore the API.
 
 --------------------------------------------------------------------------------------------------
+
+GIT LINK:
+https://github.com/swethhha/DotNetTraining/tree/main/Assesment4/BankPro.API
+--------------------------------------------------------------------------------------------------
