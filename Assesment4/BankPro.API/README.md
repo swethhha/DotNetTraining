@@ -235,6 +235,27 @@ BankPro/
 
 
 ---
+## Instructions to run :
+
+- dotnet build
+- dotnet run 
+- dotnet test (for tests)
+- Run the app and navigate to:
+```
+https://localhost:{port}/swagger
+```
+
+---
+
+## Git Commands
+
+```bash
+git init
+git add .
+git commit -m "Initial Commit - BankPro"
+git push origin main
+```
+---
 
 ## Author
 **Swetha T**  
