@@ -20,7 +20,7 @@ namespace BankPro.API.Controllers
 
         // GET: api/customer
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
             var customers = await _customerService.GetAllAsync();
             return Ok(customers);
@@ -28,45 +28,48 @@ namespace BankPro.API.Controllers
 
         // GET: api/customer/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
-                return NotFound();
+                return NotFound(new { message = "Customer not found" });
 
             return Ok(customer);
         }
 
         // POST: api/customer
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] CustomerRequestDTO dto)
+        public async Task<IActionResult> Create([FromBody] CustomerRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var createdCustomer = await _customerService.AddCustomerAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = createdCustomer.Id }, createdCustomer);
+            return Ok(new
+            {
+                message = "Customer created successfully",
+                customer = createdCustomer
+            });
         }
-
 
         // PUT: api/customer/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int id, [FromBody] CustomerRequestDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] CustomerRequestDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             await _customerService.UpdateCustomerAsync(id, dto);
-            return NoContent();
+            return Ok(new { message = "Customer updated successfully" });
         }
 
         // DELETE: api/customer/{id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             await _customerService.DeleteCustomerAsync(id);
-            return NoContent();
+            return Ok(new { message = "Customer deleted successfully" });
         }
     }
 }

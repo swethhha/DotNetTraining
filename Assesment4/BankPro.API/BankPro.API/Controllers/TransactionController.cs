@@ -1,6 +1,7 @@
 ﻿using BankPro.Core.DTOs;
 using BankPro.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace BankPro.API.Controllers
@@ -16,7 +17,7 @@ namespace BankPro.API.Controllers
             _transactionService = transactionService;
         }
 
-        // GET: api/transaction
+        // 1️⃣ GET: api/transaction
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -24,52 +25,33 @@ namespace BankPro.API.Controllers
             return Ok(transactions);
         }
 
-        // GET: api/transaction/{id}
+        // 2️⃣ GET: api/transaction/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var transaction = await _transactionService.GetTransactionByIdAsync(id);
             if (transaction == null)
-                return NotFound();
+                return NotFound(new { message = "Transaction not found." });
 
             return Ok(transaction);
         }
 
-        // POST: api/transaction
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] TransactionRequestDTO dto)
+        // 3️⃣ GET: api/transaction/type/{type}
+        [HttpGet("type/{type}")]
+        public async Task<IActionResult> GetByType(string type)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var createdTransaction = await _transactionService.AddTransactionAsync(dto);
-
-            return CreatedAtAction(nameof(GetById), new { id = createdTransaction.Id }, createdTransaction);
+            var transactions = await _transactionService.GetAllTransactionsAsync();
+            var filtered = transactions.Where(t => t.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
+            return Ok(filtered);
         }
 
-        // PUT: api/transaction/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] TransactionRequestDTO dto)
+        // 4️⃣ GET: api/transaction/dates?from=yyyy-MM-dd&to=yyyy-MM-dd
+        [HttpGet("dates")]
+        public async Task<IActionResult> GetByDateRange([FromQuery] DateTime from, [FromQuery] DateTime to)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var updated = await _transactionService.UpdateTransactionAsync(id, dto);
-            if (!updated)
-                return NotFound();
-
-            return NoContent();
-        }
-
-        // DELETE: api/transaction/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var deleted = await _transactionService.DeleteTransactionAsync(id);
-            if (!deleted)
-                return NotFound();
-
-            return NoContent();
+            var transactions = await _transactionService.GetAllTransactionsAsync();
+            var filtered = transactions.Where(t => t.Date.Date >= from.Date && t.Date.Date <= to.Date);
+            return Ok(filtered);
         }
     }
 }

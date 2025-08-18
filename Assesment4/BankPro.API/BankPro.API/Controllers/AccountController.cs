@@ -2,75 +2,88 @@
 using BankPro.Core.Entities;
 using BankPro.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BankPro.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IAccountService _service;
+        private readonly IAccountService _accountService;
 
-        public AccountController(IAccountService service)
+        public AccountController(IAccountService accountService)
         {
-            _service = service;
+            _accountService = accountService;
         }
 
         // GET: api/Account
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAll()
+        public async Task<IActionResult> GetAllAccounts()
         {
-            var accounts = await _service.GetAllAsync();
+            var accounts = await _accountService.GetAllAsync();
             return Ok(accounts);
         }
 
         // GET: api/Account/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetById(int id)
+        public async Task<IActionResult> GetAccountById(int id)
         {
-            var account = await _service.GetByIdAsync(id);
-            if (account == null) return NotFound();
+            var account = await _accountService.GetByIdAsync(id);
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
+
             return Ok(account);
         }
 
         // POST: api/Account
         [HttpPost]
-        public async Task<ActionResult> Create(AccountRequestDTO dto)
+        public async Task<IActionResult> CreateAccount([FromBody] AccountRequestDTO accountDto)
         {
-            await _service.AddAccountAsync(dto);
-            // Since Id is not returned, we just return 201 with the DTO
-            return Created(string.Empty, dto);
+            await _accountService.AddAccountAsync(accountDto);
+            return Ok(new { message = "Account created successfully" });
         }
 
-
+        // PUT: api/Account/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int id, AccountRequestDTO dto)
+        public async Task<IActionResult> UpdateAccount(int id, [FromBody] AccountRequestDTO accountDto)
         {
-            await _service.UpdateAccountAsync(id, dto);
-            return NoContent();
+            await _accountService.UpdateAccountAsync(id, accountDto);
+            return Ok(new { message = "Account updated successfully" });
         }
 
+        // DELETE: api/Account/{id}
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<IActionResult> DeleteAccount(int id)
         {
-            await _service.DeleteAccountAsync(id);
-            return NoContent();
+            await _accountService.DeleteAccountAsync(id);
+            return Ok(new { message = "Account deleted successfully" });
         }
 
-        [HttpPost("transfer")]
-        public async Task<ActionResult> Transfer([FromQuery] string fromAccount, [FromQuery] string toAccount, [FromQuery] decimal amount)
+        // POST: api/Account/deposit
+        [HttpPost("deposit")]
+        public async Task<IActionResult> Deposit([FromQuery] string accountNumber, [FromQuery] decimal amount)
         {
-            try
-            {
-                await _service.TransferAsync(fromAccount, toAccount, amount);
-                return Ok(new { message = "Transfer successful" });
-            }
-            catch (System.Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _accountService.DepositAsync(accountNumber, amount);
+            return Ok(new { message = "Deposit successful" });
+        }
+
+        // POST: api/Account/withdraw
+        [HttpPost("withdraw")]
+        public async Task<IActionResult> Withdraw([FromQuery] string accountNumber, [FromQuery] decimal amount)
+        {
+            await _accountService.WithdrawAsync(accountNumber, amount);
+            return Ok(new { message = "Withdrawal successful" });
+        }
+
+        // POST: api/Account/transfer
+        [HttpPost("transfer")]
+        public async Task<IActionResult> Transfer([FromQuery] string fromAccount, [FromQuery] string toAccount, [FromQuery] decimal amount)
+        {
+            await _accountService.TransferAsync(fromAccount, toAccount, amount);
+            return Ok(new { message = "Transfer successful" });
         }
     }
 }
