@@ -1,0 +1,1581 @@
+CODE DEBUGGING :
+
+Cooked Code:
+public class AccountService : IAccountService
+{
+    private readonly IAccountRepository _accountRepo;
+
+    public AccountService(IAccountRepository accountRepo)
+    {
+        _accountRepo = accountRepo;
+    }
+
+    public async Task TransferMoneyAsync(string fromAcc, string toAcc, decimal amount)
+    {
+        // Fix 1: Validate input parameters
+
+        if (string.IsNullOrWhiteSpace(fromAcc))
+            throw new ArgumentException("Sender account number cannot be empty", nameof(fromAcc));
+        if (string.IsNullOrWhiteSpace(toAcc))
+            throw new ArgumentException("Receiver account number cannot be empty", nameof(toAcc));
+        if (amount <= 0)
+            throw new ArgumentException("Transfer amount must be greater than zero", nameof(amount));
+
+        // Fix 2: Retrieve accounts safely
+
+        var sender = await _accountRepo.GetByAccountNumberAsync(fromAcc)
+                     ?? throw new KeyNotFoundException($"Sender account '{fromAcc}' not found");
+        var receiver = await _accountRepo.GetByAccountNumberAsync(toAcc)
+                       ?? throw new KeyNotFoundException($"Receiver account '{toAcc}' not found");
+
+        // Fix 3: Check for sufficient balance
+
+        if (sender.Balance < amount)
+            throw new InvalidOperationException("Insufficient funds in sender account");
+
+        // Fix 4: Perform transfer
+
+        sender.Balance -= amount;
+        receiver.Balance += amount;
+
+        // Fix 5: Update accounts asynchronously to handle concurrency
+
+        await _accountRepo.UpdateAsync(sender);
+        await _accountRepo.UpdateAsync(receiver);
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+| Issue                      | Fix                                           | Why                                                    |
+--------------------------------------------------------------------------------------------------------------------------------------
+| Method not async           | Made method async + awaited repo calls        | Proper async handling, prevents blocking               |
+| No parameter validation    | Checked null/empty account numbers & amount>0 | Prevents invalid input errors                          |
+| Accounts might be null     | Threw KeyNotFoundException if not found       | Clearer error messages                                 |
+| Insufficient balance       | Threw InvalidOperationException               | Accurate business logic exception                      |
+| No update after transfer   | Called UpdateAsync on both accounts           | Persists changes and handles concurrency               |
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+====================================================================================================================================================
+ Assessment 4 - Documentation: BankPro – Bank Management System (Web API)
+====================================================================================================================================================
+
+BankPro API is a simple banking management RESTful API built with **ASP.NET Core** using **Clean Architecture** (Onion Architecture).  
+It supports managing accounts, customers, and transactions. Only read operations are allowed for transactions; account and customer operations allow full CRUD.  
+
+--------------------------------------------------------------------------------------------------
+1. PROJECT STRUCTURE
+--------------------------------------------------------------------------------------------------
+
+BankPro/
+│
+├── BankPro.API/            # API Layer
+│   ├── Controllers/        # All API controllers
+│   └── Program.cs
+│
+├── BankPro.Application/    # Application Layer (Services)
+│   ├── Services/
+│   │   ├── AccountService.cs
+│   │   ├── CustomerService.cs
+│   │   └── TransactionService.cs
+│
+├── BankPro.Core/           # Core Layer (Entities, DTOs, Interfaces)
+│   ├── Entities/
+│   │   ├── Account.cs
+│   │   ├── Customer.cs
+│   │   └── Transaction.cs
+│   ├── DTOs/
+│   │   ├── AccountRequestDTO.cs
+│   │   ├── AccountResponseDTO.cs
+│   │   ├── CustomerRequestDTO.cs
+│   │   ├── CustomerResponseDTO.cs
+│   │   └── TransactionRequestDTO.cs
+│   │   └── TransactionResponseDTO.cs
+│   └── Interfaces/
+│       ├── IAccountRepository.cs
+│       ├── IAccountService.cs
+│       ├── ICustomerRepository.cs
+│       ├── ICustomerService.cs
+│       ├── IRepository.cs
+│       └── ITransactionRepository.cs
+│       └── ITransactionService.cs
+│
+├── BankPro.Infrastructure/ # Infrastructure Layer (Repositories, DB)
+│   └── Repositories/
+│       ├── AccountRepository.cs
+│       ├── CustomerRepository.cs
+│       └── TransactionRepository.cs
+│
+└── BankPro.Tests/
+│    ├── Services/ # Unit tests for services using xUnit and Moq
+│       ├── AccountServiceTests.cs
+│       ├── CustomerServiceTests.cs
+│       ├── TransactionServiceTests.cs
+│
+└── BankPro.sln             # Solution file
+
+
+2.CODE: 
+
+--------------------------------------------------------------------------------------------------
+CONTROLLERS (API Layer)
+--------------------------------------------------------------------------------------------------
+
+File: BankPro.API/Controllers/AccountController.cs
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BankPro.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AccountController : ControllerBase
+    {
+        private readonly IAccountService _accountService;
+
+        public AccountController(IAccountService accountService)
+        {
+            _accountService = accountService;
+        }
+
+        // GET: api/Account
+        [HttpGet]
+        public async Task<IActionResult> GetAllAccounts()
+        {
+            var accounts = await _accountService.GetAllAsync();
+            return Ok(accounts);
+        }
+
+        // GET: api/Account/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAccountById(int id)
+        {
+            var account = await _accountService.GetByIdAsync(id);
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
+
+            return Ok(account);
+        }
+
+        // POST: api/Account
+        [HttpPost]
+        public async Task<IActionResult> CreateAccount([FromBody] AccountRequestDTO accountDto)
+        {
+            await _accountService.AddAccountAsync(accountDto);
+            return Ok(new { message = "Account created successfully" });
+        }
+
+        // PUT: api/Account/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAccount(int id, [FromBody] AccountRequestDTO accountDto)
+        {
+            await _accountService.UpdateAccountAsync(id, accountDto);
+            return Ok(new { message = "Account updated successfully" });
+        }
+
+        // DELETE: api/Account/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            await _accountService.DeleteAccountAsync(id);
+            return Ok(new { message = "Account deleted successfully" });
+        }
+
+        // POST: api/Account/deposit
+        [HttpPost("deposit")]
+        public async Task<IActionResult> Deposit([FromQuery] string accountNumber, [FromQuery] decimal amount)
+        {
+            await _accountService.DepositAsync(accountNumber, amount);
+            return Ok(new { message = "Deposit successful" });
+        }
+
+        // POST: api/Account/withdraw
+        [HttpPost("withdraw")]
+        public async Task<IActionResult> Withdraw([FromQuery] string accountNumber, [FromQuery] decimal amount)
+        {
+            await _accountService.WithdrawAsync(accountNumber, amount);
+            return Ok(new { message = "Withdrawal successful" });
+        }
+
+        // POST: api/Account/transfer
+        [HttpPost("transfer")]
+        public async Task<IActionResult> Transfer([FromQuery] string fromAccount, [FromQuery] string toAccount, [FromQuery] decimal amount)
+        {
+            await _accountService.TransferAsync(fromAccount, toAccount, amount);
+            return Ok(new { message = "Transfer successful" });
+        }
+    }
+}
+
+
+File: BankPro.API/Controllers/CustomerController.cs
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BankPro.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CustomerController : ControllerBase
+    {
+        private readonly ICustomerService _customerService;
+
+        public CustomerController(ICustomerService customerService)
+        {
+            _customerService = customerService;
+        }
+
+        // GET: api/customer
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var customers = await _customerService.GetAllAsync();
+            return Ok(customers);
+        }
+
+        // GET: api/customer/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var customer = await _customerService.GetByIdAsync(id);
+            if (customer == null)
+                return NotFound(new { message = "Customer not found" });
+
+            return Ok(customer);
+        }
+
+        // POST: api/customer
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CustomerRequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var createdCustomer = await _customerService.AddCustomerAsync(dto);
+
+            return Ok(new
+            {
+                message = "Customer created successfully",
+                customer = createdCustomer
+            });
+        }
+
+        // PUT: api/customer/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CustomerRequestDTO dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _customerService.UpdateCustomerAsync(id, dto);
+            return Ok(new { message = "Customer updated successfully" });
+        }
+
+        // DELETE: api/customer/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _customerService.DeleteCustomerAsync(id);
+            return Ok(new { message = "Customer deleted successfully" });
+        }
+    }
+}
+
+File: BankPro.API/Controllers/TransactionController.cs
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
+
+namespace BankPro.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TransactionController : ControllerBase
+    {
+        private readonly ITransactionService _transactionService;
+
+        public TransactionController(ITransactionService transactionService)
+        {
+            _transactionService = transactionService;
+        }
+
+        //  GET: api/transaction
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var transactions = await _transactionService.GetAllTransactionsAsync();
+            return Ok(transactions);
+        }
+
+        //  GET: api/transaction/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var transaction = await _transactionService.GetTransactionByIdAsync(id);
+            if (transaction == null)
+                return NotFound(new { message = "Transaction not found." });
+
+            return Ok(transaction);
+        }
+
+        //  GET: api/transaction/type/{type}
+        [HttpGet("type/{type}")]
+        public async Task<IActionResult> GetByType(string type)
+        {
+            var transactions = await _transactionService.GetAllTransactionsAsync();
+            var filtered = transactions.Where(t => t.Type.Equals(type, StringComparison.OrdinalIgnoreCase));
+            return Ok(filtered);
+        }
+
+        //  GET: api/transaction/dates?from=yyyy-MM-dd&to=yyyy-MM-dd
+        [HttpGet("dates")]
+        public async Task<IActionResult> GetByDateRange([FromQuery] DateTime from, [FromQuery] DateTime to)
+        {
+            var transactions = await _transactionService.GetAllTransactionsAsync();
+            var filtered = transactions.Where(t => t.Date.Date >= from.Date && t.Date.Date <= to.Date);
+            return Ok(filtered);
+        }
+    }
+}
+--------------------------------------------------------------------------------------------------
+PROGRAM.CS (API Layer) - for dependency injection
+--------------------------------------------------------------------------------------------------
+
+using BankPro.Application.Services;
+using BankPro.Core.Interfaces;
+using BankPro.Infrastructure.Repositories;
+using BankPro.Application.Mapping;
+using AutoMapper;
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add AutoMapper from Application layer
+builder.Services.AddAutoMapper(typeof(BankProProfile));
+
+// Register In-Memory Repositories as Singleton
+builder.Services.AddSingleton<ICustomerRepository, CustomerRepository>();
+builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
+builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
+
+// Register Services as Scoped
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.MapControllers();
+app.Run();
+
+--------------------------------------------------------------------------------------------------
+SERVICES (APPLICATION Layer)
+--------------------------------------------------------------------------------------------------
+
+File: BankPro.Application/Services/AccountService.cs
+
+using AutoMapper;
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BankPro.Application.Services
+{
+    public class AccountService : IAccountService
+    {
+        private readonly IAccountRepository _accountRepo;
+        private readonly ITransactionRepository _transactionRepo;
+        private readonly IMapper _mapper;
+
+        public AccountService(IAccountRepository accountRepo, ITransactionRepository transactionRepo, IMapper mapper)
+        {
+            _accountRepo = accountRepo;
+            _transactionRepo = transactionRepo;
+            _mapper = mapper;
+        }
+
+        public async Task AddAccountAsync(AccountRequestDTO dto)
+        {
+            var account = _mapper.Map<Account>(dto);
+            await _accountRepo.AddAsync(account);
+        }
+
+        public async Task DeleteAccountAsync(int id)
+        {
+            await _accountRepo.DeleteAsync(id);
+        }
+
+        public async Task<IEnumerable<Account>> GetAllAsync()
+        {
+            return await _accountRepo.GetAllAsync();
+        }
+
+        public async Task<Account> GetByIdAsync(int id)
+        {
+            return await _accountRepo.GetByIdAsync(id);
+        }
+
+        public async Task UpdateAccountAsync(int id, AccountRequestDTO dto)
+        {
+            var existing = await _accountRepo.GetByIdAsync(id);
+            if (existing != null)
+            {
+                _mapper.Map(dto, existing);
+                await _accountRepo.UpdateAsync(existing);
+            }
+        }
+
+        // Deposit money
+        public async Task DepositAsync(string accountNumber, decimal amount)
+        {
+            var account = await _accountRepo.GetByAccountNumberAsync(accountNumber);
+            if (account == null) throw new Exception("Account not found");
+
+            account.Balance += amount;
+            await _accountRepo.UpdateAsync(account);
+
+            // Log transaction
+            await _transactionRepo.AddAsync(new Transaction
+            {
+                Type = "Deposit",
+                ToAccount = accountNumber,
+                FromAccount = null,
+                Amount = amount,
+                Date = DateTime.Now
+            });
+        }
+
+        // Withdraw money
+        public async Task WithdrawAsync(string accountNumber, decimal amount)
+        {
+            var account = await _accountRepo.GetByAccountNumberAsync(accountNumber);
+            if (account == null) throw new Exception("Account not found");
+            if (account.Balance < amount) throw new Exception("Insufficient balance");
+
+            account.Balance -= amount;
+            await _accountRepo.UpdateAsync(account);
+
+            // Log transaction
+            await _transactionRepo.AddAsync(new Transaction
+            {
+                Type = "Withdraw",
+                FromAccount = accountNumber,
+                ToAccount = null,
+                Amount = amount,
+                Date = DateTime.Now
+            });
+        }
+
+        // Transfer money
+        public async Task TransferAsync(string fromAccountNumber, string toAccountNumber, decimal amount)
+        {
+            var fromAccount = await _accountRepo.GetByAccountNumberAsync(fromAccountNumber);
+            var toAccount = await _accountRepo.GetByAccountNumberAsync(toAccountNumber);
+
+            if (fromAccount == null || toAccount == null) throw new Exception("Account not found");
+            if (fromAccount.Balance < amount) throw new Exception("Insufficient balance");
+
+            fromAccount.Balance -= amount;
+            toAccount.Balance += amount;
+
+            await _accountRepo.UpdateAsync(fromAccount);
+            await _accountRepo.UpdateAsync(toAccount);
+
+            // Log transaction
+            await _transactionRepo.AddAsync(new Transaction
+            {
+                Type = "Transfer",
+                FromAccount = fromAccountNumber,
+                ToAccount = toAccountNumber,
+                Amount = amount,
+                Date = DateTime.Now
+            });
+        }
+    }
+}
+
+File: BankPro.Application/Services/CustomerService.cs
+
+using AutoMapper;
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using BankPro.Infrastructure.Repositories;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BankPro.Application.Services
+{
+    public class CustomerService : ICustomerService
+    {
+        private readonly ICustomerRepository _customerRepo;
+        private readonly IMapper _mapper;
+
+        public CustomerService(ICustomerRepository customerRepo, IMapper mapper)
+        {
+            _customerRepo = customerRepo;
+            _mapper = mapper;
+        }
+
+        public async Task<Customer> AddCustomerAsync(CustomerRequestDTO dto)
+        {
+            var customer = new Customer
+            {
+                Name = dto.Name,
+                Email = dto.Email
+            };
+
+            // Save to repository (or in-memory storage)
+            await _customerRepo.AddAsync(customer);
+
+            return customer; // Has Id now
+        }
+
+
+        public async Task DeleteCustomerAsync(int id)
+        {
+            await _customerRepo.DeleteAsync(id);
+        }
+
+        public async Task<IEnumerable<Customer>> GetAllAsync()
+        {
+            return await _customerRepo.GetAllAsync();
+        }
+
+        public async Task<Customer> GetByIdAsync(int id)
+        {
+            return await _customerRepo.GetByIdAsync(id);
+        }
+
+        public async Task UpdateCustomerAsync(int id, CustomerRequestDTO dto)
+        {
+            var existing = await _customerRepo.GetByIdAsync(id);
+            if (existing != null)
+            {
+                _mapper.Map(dto, existing);
+                await _customerRepo.UpdateAsync(existing);
+            }
+        }
+    }
+}
+
+
+File: BankPro.Application/Services/TransactionService.cs
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BankPro.Application.Services
+{
+    public class TransactionService : ITransactionService
+    {
+        private readonly ITransactionRepository _transactionRepository;
+
+        public TransactionService(ITransactionRepository transactionRepository)
+        {
+            _transactionRepository = transactionRepository;
+        }
+
+        public async Task<IEnumerable<TransactionResponseDTO>> GetAllTransactionsAsync()
+        {
+            var transactions = await _transactionRepository.GetAllAsync();
+            return transactions.Select(t => new TransactionResponseDTO
+            {
+                Id = t.Id,
+                Amount = t.Amount,
+                Type = t.Type,
+                FromAccount = t.FromAccount,
+                ToAccount = t.ToAccount,
+                Date = t.Date
+            });
+        }
+
+        public async Task<TransactionResponseDTO> GetTransactionByIdAsync(int id)
+        {
+            var t = await _transactionRepository.GetByIdAsync(id);
+            if (t == null) return null;
+
+            return new TransactionResponseDTO
+            {
+                Id = t.Id,
+                Amount = t.Amount,
+                Type = t.Type,
+                FromAccount = t.FromAccount,
+                ToAccount = t.ToAccount,
+                Date = t.Date
+            };
+        }
+
+        public async Task<IEnumerable<TransactionResponseDTO>> GetTransactionsByTypeAsync(string type)
+        {
+            var transactions = await _transactionRepository.GetAllAsync();
+            return transactions
+                .Where(t => t.Type.Equals(type, StringComparison.OrdinalIgnoreCase))
+                .Select(t => new TransactionResponseDTO
+                {
+                    Id = t.Id,
+                    Amount = t.Amount,
+                    Type = t.Type,
+                    FromAccount = t.FromAccount,
+                    ToAccount = t.ToAccount,
+                    Date = t.Date
+                });
+        }
+
+        public async Task<IEnumerable<TransactionResponseDTO>> GetTransactionsByDateRangeAsync(DateTime from, DateTime to)
+        {
+            var transactions = await _transactionRepository.GetAllAsync();
+            return transactions
+                .Where(t => t.Date.Date >= from.Date && t.Date.Date <= to.Date)
+                .Select(t => new TransactionResponseDTO
+                {
+                    Id = t.Id,
+                    Amount = t.Amount,
+                    Type = t.Type,
+                    FromAccount = t.FromAccount,
+                    ToAccount = t.ToAccount,
+                    Date = t.Date
+                });
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+MAPPING (APPLICATION Layer)
+--------------------------------------------------------------------------------------------------
+
+File: BankPro.Application/Mapping/MappingProfile.cs
+
+using AutoMapper;
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace BankPro.Application.Mapping
+{
+    public class BankProProfile : Profile
+    {
+        public BankProProfile()
+        {
+            // Customer mapping
+            CreateMap<CustomerRequestDTO, Customer>();
+            CreateMap<Customer, CustomerResponseDTO>();
+
+            // Account mapping
+            CreateMap<AccountRequestDTO, Account>();
+            CreateMap<Account, AccountResponseDTO>();
+
+            // Transaction mapping
+            CreateMap<TransactionRequestDTO, Transaction>();
+            CreateMap<Transaction, TransactionResponseDTO>();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+DTOs (CORE Layer)
+--------------------------------------------------------------------------------------------------
+File: BankPro.Core/DTOs/AccountRequestDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class AccountRequestDTO
+    {
+        public required string AccountNumber { get; set; }
+        public int CustomerId { get; set; }
+        public decimal Balance { get; set; }
+    }
+}
+
+
+File: BankPro.Core/DTOs/AccountResponseDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class AccountResponseDTO
+    {
+        public int Id { get; set; }
+        public string AccountNumber { get; set; }
+        public int CustomerId { get; set; }
+        public decimal Balance { get; set; }
+    }
+}
+
+File: BankPro.Core/DTOs/CustomerRequestDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class CustomerRequestDTO
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+    }
+}
+
+File: BankPro.Core/DTOs/CustomerResponseDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class CustomerResponseDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+    }
+}
+
+
+File: BankPro.Core/DTOs/TransactionRequestDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class TransactionRequestDTO
+    {
+        public string Type { get; set; }          // "Deposit", "Withdraw", "Transfer"
+        public string FromAccount { get; set; }   // null for deposit
+        public string ToAccount { get; set; }     // null for withdraw
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; } = DateTime.Now; // default to current time
+    }
+}
+
+
+File: BankPro.Core/DTOs/TransactionResponseDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.DTOs
+{
+    public class TransactionResponseDTO
+    {
+        public int Id { get; set; }
+        public string Type { get; set; }
+        public string FromAccount { get; set; }
+        public string ToAccount { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+ENTITIES (CORE Layer)
+--------------------------------------------------------------------------------------------------
+File: BankPro.Core/Entities/Account.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Entities
+{
+    public class Account
+    {
+        public int Id { get; set; }           
+        public required string AccountNumber { get; set; }
+        public int CustomerId { get; set; } 
+        public decimal Balance { get; set; }
+    }
+}
+
+
+File: BankPro.Core/Entities/Customer.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Entities
+{
+    public class Customer
+    {
+        public int Id { get; set; }          
+        public required string Name { get; set; }
+        public required string Email { get; set; }
+    }
+}
+
+File: BankPro.Core/Entities/Transaction.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+public class Transaction
+{
+    public int Id { get; set; }
+    public string Type { get; set; }     // "Deposit", "Withdrawal", "Transfer"
+    public string FromAccount { get; set; }  // For deposit, can be null
+    public string ToAccount { get; set; }    // For withdrawal, can be null
+    public decimal Amount { get; set; }
+    public DateTime Date { get; set; } = DateTime.Now;
+}
+
+--------------------------------------------------------------------------------------------------
+INTERFACES (CORE Layer)
+--------------------------------------------------------------------------------------------------
+File: BankPro.Core/Interfaces/IAccountRepository.cs
+
+using BankPro.Core.Entities;
+using BankPro.Infrastructure.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Interfaces
+{
+    public interface IAccountRepository : IRepository<Account>
+    {
+        Task<Account> GetByAccountNumberAsync(string accountNumber);
+    }
+}
+
+
+File: BankPro.Core/Interfaces/IAccountService.cs
+
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Interfaces
+{
+    public interface IAccountService
+    {
+        Task<IEnumerable<Account>> GetAllAsync();
+        Task<Account> GetByIdAsync(int id);
+        Task AddAccountAsync(AccountRequestDTO dto);
+        Task UpdateAccountAsync(int id, AccountRequestDTO dto);
+        Task DeleteAccountAsync(int id);
+        Task DepositAsync(string accountNumber, decimal amount);
+        Task WithdrawAsync(string accountNumber, decimal amount);
+        Task TransferAsync(string fromAccount, string toAccount, decimal amount);
+      
+    }
+}
+
+
+
+File: BankPro.Core/Interfaces/ICustomerRepository.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BankPro.Core.Entities;
+using BankPro.Infrastructure.Interfaces;
+
+
+namespace BankPro.Core.Interfaces
+{
+    public interface ICustomerRepository : IRepository<Customer>
+    {
+    }
+}
+
+
+
+
+File: BankPro.Core/Interfaces/ICustomerService.cs
+
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Interfaces
+{
+   public interface ICustomerService
+{
+    Task<IEnumerable<Customer>> GetAllAsync();
+    Task<Customer> GetByIdAsync(int id);
+    Task<Customer> AddCustomerAsync(CustomerRequestDTO dto); // return created Customer
+    Task UpdateCustomerAsync(int id, CustomerRequestDTO dto);
+    Task DeleteCustomerAsync(int id);
+}
+
+}
+
+
+
+File: BankPro.Core/Interfaces/IRepository.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BankPro.Core.Entities;
+
+namespace BankPro.Infrastructure.Interfaces
+{
+    public interface IRepository<T>
+    {
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<T> GetByIdAsync(int id);
+        Task AddAsync(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(int id);
+    }
+}
+
+
+File: BankPro.Core/Interfaces/ITransactionRepository.cs
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BankPro.Core.Entities;
+using BankPro.Infrastructure.Interfaces;
+namespace BankPro.Core.Interfaces
+{
+    public interface ITransactionRepository : IRepository<Transaction>
+    {
+        Task<IEnumerable<Transaction>> GetByAccountAsync(string accountNumber);
+    }
+}
+
+
+File: BankPro.Core/Interfaces/ITransactionService.cs
+
+
+using BankPro.Core.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace BankPro.Core.Interfaces
+{
+    public interface ITransactionService
+    {
+        Task<IEnumerable<TransactionResponseDTO>> GetAllTransactionsAsync();
+        Task<TransactionResponseDTO> GetTransactionByIdAsync(int id);
+        Task<IEnumerable<TransactionResponseDTO>> GetTransactionsByTypeAsync(string type);
+        Task<IEnumerable<TransactionResponseDTO>> GetTransactionsByDateRangeAsync(DateTime from, DateTime to);
+    }
+}
+
+--------------------------------------------------------------------------------------------------
+REPOSITORIES (INFRASTRUCTURE Layer)
+--------------------------------------------------------------------------------------------------
+File: BankPro.Infrastructure/Repositories/AccountRepository.cs
+
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BankPro.Infrastructure.Repositories
+{
+    public class AccountRepository : IAccountRepository
+    {
+        private readonly List<Account> _accounts = new();
+        private int _nextId = 1;
+
+        public async Task AddAsync(Account entity)
+        {
+            await Task.Run(() =>
+            {
+                entity.Id = _nextId++;
+                _accounts.Add(entity);
+            });
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            await Task.Run(() =>
+            {
+                var acc = _accounts.FirstOrDefault(a => a.Id == id);
+                if (acc != null) _accounts.Remove(acc);
+            });
+        }
+
+        public async Task<IEnumerable<Account>> GetAllAsync() =>
+            await Task.Run(() => _accounts.AsEnumerable());
+
+        public async Task<Account> GetByIdAsync(int id) =>
+            await Task.Run(() => _accounts.FirstOrDefault(a => a.Id == id));
+
+        public async Task UpdateAsync(Account entity)
+        {
+            await Task.Run(() =>
+            {
+                var existing = _accounts.FirstOrDefault(a => a.Id == entity.Id);
+                if (existing != null)
+                {
+                    existing.AccountNumber = entity.AccountNumber;
+                    existing.CustomerId = entity.CustomerId;
+                    existing.Balance = entity.Balance;
+                }
+            });
+        }
+
+        // Helper to get account by account number
+        public async Task<Account> GetByAccountNumberAsync(string accountNumber) =>
+            await Task.Run(() => _accounts.FirstOrDefault(a => a.AccountNumber == accountNumber));
+    }
+}
+
+File: BankPro.Infrastructure/Repositories/CustomerRepository.cs
+
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BankPro.Infrastructure.Repositories
+{
+    public class CustomerRepository : ICustomerRepository
+    {
+        private readonly List<Customer> _customers = new();
+        private int _nextId = 1;
+
+        public async Task AddAsync(Customer entity)
+        {
+            await Task.Run(() =>
+            {
+                entity.Id = _nextId++;
+                _customers.Add(entity);
+            });
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            await Task.Run(() =>
+            {
+                var customer = _customers.FirstOrDefault(c => c.Id == id);
+                if (customer != null) _customers.Remove(customer);
+            });
+        }
+
+        public async Task<IEnumerable<Customer>> GetAllAsync() =>
+            await Task.Run(() => _customers.AsEnumerable());
+
+        public async Task<Customer> GetByIdAsync(int id) =>
+            await Task.Run(() => _customers.FirstOrDefault(c => c.Id == id));
+
+        public async Task UpdateAsync(Customer entity)
+        {
+            await Task.Run(() =>
+            {
+                var existing = _customers.FirstOrDefault(c => c.Id == entity.Id);
+                if (existing != null)
+                {
+                    existing.Name = entity.Name;
+                    existing.Email = entity.Email;
+                }
+            });
+        }
+    }
+}
+
+File: BankPro.Infrastructure/Repositories/TransactionRepository.cs
+
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace BankPro.Infrastructure.Repositories
+{
+    public class TransactionRepository : ITransactionRepository
+    {
+        private readonly List<Transaction> _transactions = new();
+        private int _nextId = 1;
+
+        public async Task AddAsync(Transaction entity)
+        {
+            await Task.Run(() =>
+            {
+                entity.Id = _nextId++;
+                _transactions.Add(entity);
+            });
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            await Task.Run(() =>
+            {
+                var tran = _transactions.FirstOrDefault(t => t.Id == id);
+                if (tran != null) _transactions.Remove(tran);
+            });
+        }
+
+        public async Task<IEnumerable<Transaction>> GetAllAsync() =>
+            await Task.Run(() => _transactions.AsEnumerable());
+
+        public async Task<Transaction> GetByIdAsync(int id) =>
+            await Task.Run(() => _transactions.FirstOrDefault(t => t.Id == id));
+
+        public async Task UpdateAsync(Transaction entity)
+        {
+            await Task.Run(() =>
+            {
+                var existing = _transactions.FirstOrDefault(t => t.Id == entity.Id);
+                if (existing != null)
+                {
+                    existing.Type = entity.Type;
+                    existing.FromAccount = entity.FromAccount;
+                    existing.ToAccount = entity.ToAccount;
+                    existing.Amount = entity.Amount;
+                    existing.Date = entity.Date;
+                }
+            });
+        }
+
+        // Helper: get transactions by account
+        public async Task<IEnumerable<Transaction>> GetByAccountAsync(string accountNumber) =>
+            await Task.Run(() => _transactions
+                .Where(t => t.FromAccount == accountNumber || t.ToAccount == accountNumber));
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------
+SERVICES (TEST Layer)
+--------------------------------------------------------------------------------------------------
+File: BankPro.Tests/Services/AccountServiceTests.cs
+
+using Xunit;
+using Moq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using AutoMapper;
+using BankPro.Application.Services;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using BankPro.Core.DTOs;
+using System;
+
+namespace BankPro.Tests.Services
+{
+    public class AccountServiceTests
+    {
+        private readonly Mock<IAccountRepository> _accountRepoMock;
+        private readonly Mock<ITransactionRepository> _transactionRepoMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly AccountService _accountService;
+
+        public AccountServiceTests()
+        {
+            _accountRepoMock = new Mock<IAccountRepository>();
+            _transactionRepoMock = new Mock<ITransactionRepository>();
+            _mapperMock = new Mock<IMapper>();
+
+            _accountService = new AccountService(
+                _accountRepoMock.Object,
+                _transactionRepoMock.Object,
+                _mapperMock.Object
+            );
+        }
+
+        [Fact]
+        public async Task AddAccountAsync_ShouldCallRepository()
+        {
+            var dto = new AccountRequestDTO { AccountNumber = "123", Balance = 100 };
+            var account = new Account { Id = 1, AccountNumber = "123", Balance = 100 };
+
+            _mapperMock.Setup(m => m.Map<Account>(dto)).Returns(account);
+
+            await _accountService.AddAccountAsync(dto);
+
+            _accountRepoMock.Verify(r => r.AddAsync(account), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnAccount_WhenExists()
+        {
+            var account = new Account { Id = 1, AccountNumber = "123", Balance = 200 };
+            _accountRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(account);
+
+            var result = await _accountService.GetByIdAsync(1);
+
+            Assert.NotNull(result);
+            Assert.Equal("123", result.AccountNumber);
+            Assert.Equal(200, result.Balance);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnAccounts()
+        {
+            var accounts = new List<Account>
+            {
+                new Account { Id = 1, AccountNumber = "123", Balance = 100 }
+            };
+
+            _accountRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(accounts);
+
+            var result = await _accountService.GetAllAsync();
+
+            Assert.Single(result);
+        }
+
+        [Fact]
+        public async Task DeleteAccountAsync_ShouldCallRepository()
+        {
+            await _accountService.DeleteAccountAsync(1);
+
+            _accountRepoMock.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task DepositAsync_ShouldIncreaseBalance_AndLogTransaction()
+        {
+            var account = new Account { Id = 1, AccountNumber = "123", Balance = 100 };
+            _accountRepoMock.Setup(r => r.GetByAccountNumberAsync("123")).ReturnsAsync(account);
+
+            await _accountService.DepositAsync("123", 50);
+
+            Assert.Equal(150, account.Balance);
+            _accountRepoMock.Verify(r => r.UpdateAsync(account), Times.Once);
+            _transactionRepoMock.Verify(t => t.AddAsync(It.IsAny<Transaction>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task WithdrawAsync_ShouldDecreaseBalance_WhenSufficient()
+        {
+            var account = new Account { Id = 1, AccountNumber = "123", Balance = 200 };
+            _accountRepoMock.Setup(r => r.GetByAccountNumberAsync("123")).ReturnsAsync(account);
+
+            await _accountService.WithdrawAsync("123", 50);
+
+            Assert.Equal(150, account.Balance);
+            _accountRepoMock.Verify(r => r.UpdateAsync(account), Times.Once);
+            _transactionRepoMock.Verify(t => t.AddAsync(It.IsAny<Transaction>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task WithdrawAsync_ShouldThrow_WhenInsufficientBalance()
+        {
+            var account = new Account { Id = 1, AccountNumber = "123", Balance = 30 };
+            _accountRepoMock.Setup(r => r.GetByAccountNumberAsync("123")).ReturnsAsync(account);
+
+            await Assert.ThrowsAsync<Exception>(() => _accountService.WithdrawAsync("123", 50));
+        }
+
+        [Fact]
+        public async Task TransferAsync_ShouldMoveBalanceBetweenAccounts()
+        {
+            var from = new Account { Id = 1, AccountNumber = "123", Balance = 200 };
+            var to = new Account { Id = 2, AccountNumber = "456", Balance = 100 };
+
+            _accountRepoMock.Setup(r => r.GetByAccountNumberAsync("123")).ReturnsAsync(from);
+            _accountRepoMock.Setup(r => r.GetByAccountNumberAsync("456")).ReturnsAsync(to);
+
+            await _accountService.TransferAsync("123", "456", 50);
+
+            Assert.Equal(150, from.Balance);
+            Assert.Equal(150, to.Balance);
+
+            _accountRepoMock.Verify(r => r.UpdateAsync(from), Times.Once);
+            _accountRepoMock.Verify(r => r.UpdateAsync(to), Times.Once);
+            _transactionRepoMock.Verify(t => t.AddAsync(It.IsAny<Transaction>()), Times.Once);
+        }
+    }
+}
+
+File: BankPro.Tests/Services/CustomerServiceTests.cs
+
+using Xunit;
+using Moq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using BankPro.Application.Services;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using BankPro.Core.DTOs;
+using AutoMapper;
+
+namespace BankPro.Tests.Services
+{
+    public class CustomerServiceTests
+    {
+        private readonly Mock<ICustomerRepository> _customerRepoMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly CustomerService _customerService;
+
+        public CustomerServiceTests()
+        {
+            _customerRepoMock = new Mock<ICustomerRepository>();
+            _mapperMock = new Mock<IMapper>();
+            _customerService = new CustomerService(_customerRepoMock.Object, _mapperMock.Object);
+        }
+
+        [Fact]
+        public async Task AddCustomerAsync_ShouldAddAndReturnCustomer()
+        {
+            var dto = new CustomerRequestDTO { Name = "John", Email = "john@test.com" };
+
+            _customerRepoMock.Setup(r => r.AddAsync(It.IsAny<Customer>()))
+                             .Returns(Task.CompletedTask);
+
+            var result = await _customerService.AddCustomerAsync(dto);
+
+            Assert.Equal(dto.Name, result.Name);
+            Assert.Equal(dto.Email, result.Email);
+            _customerRepoMock.Verify(r => r.AddAsync(It.IsAny<Customer>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ShouldReturnCustomer_WhenExists()
+        {
+            var customer = new Customer { Id = 1, Name = "Alice", Email = "alice@test.com" };
+            _customerRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(customer);
+
+            var result = await _customerService.GetByIdAsync(1);
+
+            Assert.NotNull(result);
+            Assert.Equal("Alice", result.Name);
+            Assert.Equal("alice@test.com", result.Email);
+        }
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnCustomers()
+        {
+            var customers = new List<Customer>
+            {
+                new Customer { Id = 1, Name = "A", Email = "a@test.com" }
+            };
+
+            _customerRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(customers);
+
+            var result = await _customerService.GetAllAsync();
+
+            Assert.Single(result);
+            Assert.Equal("A", result.First().Name);
+            Assert.Equal("a@test.com", result.First().Email);
+        }
+
+        [Fact]
+        public async Task DeleteCustomerAsync_ShouldCallRepository()
+        {
+            await _customerService.DeleteCustomerAsync(1);
+            _customerRepoMock.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateCustomerAsync_ShouldUpdate_WhenExists()
+        {
+            var dto = new CustomerRequestDTO { Name = "Updated", Email = "updated@test.com" };
+            var existing = new Customer { Id = 1, Name = "Old", Email = "old@test.com" };
+
+            _customerRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+
+            await _customerService.UpdateCustomerAsync(1, dto);
+
+            _mapperMock.Verify(m => m.Map(dto, existing), Times.Once);
+            _customerRepoMock.Verify(r => r.UpdateAsync(existing), Times.Once);
+        }
+    }
+}
+
+File: BankPro.Tests/Services/TransactionServiceTests.cs
+
+using BankPro.Application.Services;
+using BankPro.Core.DTOs;
+using BankPro.Core.Entities;
+using BankPro.Core.Interfaces;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace BankPro.Tests.Services
+{
+    public class TransactionServiceTests
+    {
+        private readonly Mock<ITransactionRepository> _transactionRepoMock;
+        private readonly TransactionService _service;
+
+        public TransactionServiceTests()
+        {
+            _transactionRepoMock = new Mock<ITransactionRepository>();
+            _service = new TransactionService(_transactionRepoMock.Object);
+        }
+
+        private List<Transaction> GetSampleTransactions()
+        {
+            return new List<Transaction>
+            {
+                new Transaction { Id = 1, Type = "deposit", FromAccount = null, ToAccount = "101", Amount = 100, Date = new DateTime(2025, 8, 15) },
+                new Transaction { Id = 2, Type = "withdraw", FromAccount = "101", ToAccount = null, Amount = 50, Date = new DateTime(2025, 8, 16) },
+                new Transaction { Id = 3, Type = "transfer", FromAccount = "101", ToAccount = "102", Amount = 30, Date = new DateTime(2025, 8, 17) },
+            };
+        }
+
+        [Fact]
+        public async Task GetAllTransactionsAsync_ShouldReturnAllTransactions()
+        {
+            // Arrange
+            _transactionRepoMock.Setup(r => r.GetAllAsync())
+                .ReturnsAsync(GetSampleTransactions());
+
+            // Act
+            var result = await _service.GetAllTransactionsAsync();
+
+            // Assert
+            Assert.Equal(3, result.Count());
+        }
+
+        [Fact]
+        public async Task GetTransactionByIdAsync_ShouldReturnCorrectTransaction()
+        {
+            // Arrange
+            var sample = GetSampleTransactions()[0];
+            _transactionRepoMock.Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(sample);
+
+            // Act
+            var result = await _service.GetTransactionByIdAsync(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("deposit", result.Type);
+            Assert.Equal(100, result.Amount);
+        }
+
+        [Fact]
+        public async Task GetTransactionsByTypeAsync_ShouldReturnFilteredTransactions()
+        {
+            // Arrange
+            _transactionRepoMock.Setup(r => r.GetAllAsync())
+                .ReturnsAsync(GetSampleTransactions());
+
+            // Act
+            var result = await _service.GetTransactionsByTypeAsync("withdraw");
+
+            // Assert
+            Assert.Single(result);
+            Assert.All(result, t => Assert.Equal("withdraw", t.Type));
+        }
+
+        [Fact]
+        public async Task GetTransactionsByDateRangeAsync_ShouldReturnCorrectTransactions()
+        {
+            // Arrange
+            _transactionRepoMock.Setup(r => r.GetAllAsync())
+                .ReturnsAsync(GetSampleTransactions());
+
+            var from = new DateTime(2025, 8, 16);
+            var to = new DateTime(2025, 8, 17);
+
+            // Act
+            var result = await _service.GetTransactionsByDateRangeAsync(from, to);
+
+            // Assert
+            Assert.Equal(2, result.Count());
+            Assert.All(result, t => Assert.InRange(t.Date, from, to));
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------
+3. USAGE NOTES
+--------------------------------------------------------------------------------------------------
+
+- Swagger UI is enabled by default when running BankPro.API.
+- API endpoints: /api/account, /api/customer, /api/transaction
+- Use [HttpPost] for creation.
+- Use [HttpGet] for listing all items and fetching by ID.
+- Use [HttpPut] for updating an existing item by ID.
+- Use [HttpDelete] for deleting an item by ID.d.
+ 
+--------------------------------------------------------------------------------------------------
+4. RUNNING THE PROJECT
+--------------------------------------------------------------------------------------------------
+
+> dotnet build
+> dotnet run --project BankPro.API
+> dotnet test (for tests)
+Then browse to https://localhost:{port}/swagger to explore the API.
+
+--------------------------------------------------------------------------------------------------
