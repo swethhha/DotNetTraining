@@ -1,26 +1,20 @@
-using HostelManagement.Application.Services;
+﻿using HostelManagement.Application.Services;
 using HostelManagement.Core.Interfaces;
-using HostelManagement.Infrastructure.Data;
 using HostelManagement.Infrastructure.Repositories;
-using HostelManagement.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// 🔹 Register In-Memory Repositories
+builder.Services.AddSingleton<IRoomRepository, RoomRepository>();
+builder.Services.AddSingleton<IStaffRepository, StaffRepository>();
+builder.Services.AddSingleton<IStudentRepository, StudentRepository>();
 
-// Register Repositories
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IStudentRepository, StudentRepository>();
-
-// Register Services
+// 🔹 Register Services
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 
+// 🔹 Add Controllers & Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

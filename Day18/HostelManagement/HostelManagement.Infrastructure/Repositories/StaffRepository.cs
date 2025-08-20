@@ -1,50 +1,47 @@
 ﻿using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
-using HostelManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace HostelManagement.Infrastructure.Repositories
 {
     public class StaffRepository : IStaffRepository
     {
-        private readonly AppDbContext _context;
+        private readonly List<Staff> _staff = new();
 
-        public StaffRepository(AppDbContext context)
+        public Task<List<Staff>> GetAllAsync()
         {
-            _context = context;
+            return Task.FromResult(_staff.ToList());
         }
 
-        public async Task<List<Staff>> GetAllAsync()
+        public Task<Staff?> GetByIdAsync(int id)
         {
-            return await _context.Staffs.ToListAsync();
+            var staff = _staff.FirstOrDefault(s => s.Id == id);
+            return Task.FromResult(staff);
         }
 
-        public async Task<Staff?> GetByIdAsync(int id)
+        public Task AddAsync(Staff staff)
         {
-            return await _context.Staffs.FindAsync(id);
+            _staff.Add(staff);
+            return Task.CompletedTask;
         }
 
-        public async Task AddAsync(Staff staff)
+        public Task UpdateAsync(Staff staff)
         {
-            _context.Staffs.Add(staff);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(Staff staff)
-        {
-            _context.Staffs.Update(staff);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var staff = await _context.Staffs.FindAsync(id);
-            if (staff != null)
+            var existing = _staff.FirstOrDefault(s => s.Id == staff.Id);
+            if (existing != null)
             {
-                _context.Staffs.Remove(staff);
-                await _context.SaveChangesAsync();
+                existing.Name = staff.Name;
+                existing.Capacity = staff.Capacity;
             }
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteAsync(int id)
+        {
+            var staff = _staff.FirstOrDefault(s => s.Id == id);
+            if (staff != null)
+                _staff.Remove(staff);
+
+            return Task.CompletedTask;
         }
     }
 }

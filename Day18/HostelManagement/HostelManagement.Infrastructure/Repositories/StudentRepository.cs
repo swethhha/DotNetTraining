@@ -1,56 +1,55 @@
 ﻿using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
-using HostelManagement.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace HostelManagement.Infrastructure.Repositories
 {
     public class StudentRepository : IStudentRepository
     {
-        private readonly AppDbContext _context;
+        private readonly List<Student> _students = new();
 
-        public StudentRepository(AppDbContext context)
+        public Task<List<Student>> GetAllAsync()
         {
-            _context = context;
+            return Task.FromResult(_students.ToList());
         }
 
-        public async Task<List<Student>> GetAllAsync()
+        public Task<Student?> GetByIdAsync(int id)
         {
-            return await _context.Students.ToListAsync();
+            var student = _students.FirstOrDefault(s => s.Id == id);
+            return Task.FromResult(student);
         }
 
-        public async Task<Student?> GetByIdAsync(int id)
+        public Task AddAsync(Student student)
         {
-            return await _context.Students.FindAsync(id);
+            _students.Add(student);
+            return Task.CompletedTask;
         }
 
-        public async Task AddAsync(Student student)
+        public Task UpdateAsync(Student student)
         {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(Student student)
-        {
-            _context.Students.Update(student);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var student = await _context.Students.FindAsync(id);
-            if (student != null)
+            var existing = _students.FirstOrDefault(s => s.Id == student.Id);
+            if (existing != null)
             {
-                _context.Students.Remove(student);
-                await _context.SaveChangesAsync();
+                existing.Name = student.Name;
+                existing.Department = student.Department;
+                existing.RoomId = student.RoomId;
+                existing.StaffId = student.StaffId;
             }
+            return Task.CompletedTask;
         }
 
-        public async Task<List<Student>> GetStudentsByRoomIdAsync(int roomId)
+        public Task DeleteAsync(int id)
         {
-            return await _context.Students
-                .Where(s => s.RoomId == roomId)
-                .ToListAsync();
+            var student = _students.FirstOrDefault(s => s.Id == id);
+            if (student != null)
+                _students.Remove(student);
+
+            return Task.CompletedTask;
+        }
+
+        public Task<List<Student>> GetStudentsByRoomIdAsync(int roomId)
+        {
+            var list = _students.Where(s => s.RoomId == roomId).ToList();
+            return Task.FromResult(list);
         }
     }
 }

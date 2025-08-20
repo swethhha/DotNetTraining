@@ -1,9 +1,8 @@
 ﻿using HostelManagement.Core.DTOs;
 using HostelManagement.Core.Entities;
 using HostelManagement.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
-namespace HostelManagement.Infrastructure.Services
+namespace HostelManagement.Application.Services
 {
     public class StudentService : IStudentService
     {
@@ -48,8 +47,8 @@ namespace HostelManagement.Infrastructure.Services
             {
                 Name = studentRequest.Name,
                 Department = studentRequest.Department,
-                RoomId = 0, // leave null/0 if no assignment
-                StaffId = 0 // leave null/0 if no assignment
+                RoomId = 0,
+                StaffId = 0
             };
 
             await _studentRepo.AddAsync(student);
