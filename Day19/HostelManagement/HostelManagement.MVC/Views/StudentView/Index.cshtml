@@ -1,0 +1,28 @@
+﻿@model IEnumerable<HostelManagement.MVC.Models.StudentViewModel>
+
+<h2>All Students</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Room</th>
+            <th>Staff</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var student in Model)
+        {
+            <tr>
+                <td>@student.Name</td>
+                <td>@student.Department</td>
+                <td>@student.RoomNumber</td>
+                <td>@student.StaffName</td>
+                <td>
+                    <a asp-controller="StudentView" asp-action="Details" asp-route-id="@student.Id">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

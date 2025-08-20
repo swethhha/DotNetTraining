@@ -1,0 +1,16 @@
+﻿@model HostelManagement.MVC.Models.StaffViewModel
+
+<h2>Staff Details</h2>
+<p><strong>Name:</strong> @Model.Name</p>
+<p><strong>Capacity:</strong> @Model.Capacity</p>
+<p><strong>Rooms Managed:</strong> @Model.RoomsManaged</p>
+
+<h3>Room Numbers</h3>
+<ul>
+    @foreach (var room in Model.RoomNumbers)
+    {
+        <li>@room</li>
+    }
+</ul>
+
+<a asp-controller="StaffView" asp-action="Index">Back to List</a>
