@@ -1,0 +1,9 @@
+﻿@model HostelManagement.MVC.Models.StudentViewModel
+
+<h2>Student Details</h2>
+<p><strong>Name:</strong> @Model.Name</p>
+<p><strong>Department:</strong> @Model.Department</p>
+<p><strong>Room:</strong> @Model.RoomNumber</p>
+<p><strong>Staff:</strong> @Model.StaffName</p>
+
+<a asp-controller="StudentView" asp-action="Index">Back to List</a>
