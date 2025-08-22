@@ -1,0 +1,42 @@
+﻿@model IEnumerable<EventEase.MVC.Models.EventViewModel>
+
+@{
+    ViewData["Title"] = "Events List";
+}
+
+<h2>Events List</h2>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var ev in Model)
+            {
+                <tr>
+                    <td>@ev.Id</td>
+                    <td>@ev.Title</td>
+                    <td>@ev.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@ev.Location</td>
+                    <td>
+                        <a asp-controller="Event" asp-action="Details" asp-route-id="@ev.Id" class="btn btn-sm btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No events found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
