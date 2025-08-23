@@ -1,18 +1,95 @@
+Bonus challenge
+Here’s the minimal gist for adding search/filtering to your Event list in Razor:
+
+Controller – EventController:
+
+public async Task<IActionResult> Index(string searchTitle, string searchCategory)
+{
+    var events = await _eventService.GetAllEventsAsync();
+
+    if (!string.IsNullOrEmpty(searchTitle))
+        events = events.Where(e => e.Title.Contains(searchTitle, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    if (!string.IsNullOrEmpty(searchCategory))
+        events = events.Where(e => e.Category.Equals(searchCategory, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    return View(events);
+}
+
+View – Views/Event/Index.cshtml
+@{
+    ViewData["Title"] = "Event List";
+}
+
+<h2>Event List</h2>
+
+<form method="get" asp-action="Index">
+    <input type="text" name="searchTitle" placeholder="Search by Title" value="@Context.Request.Query["searchTitle"]" />
+
+    <select name="searchCategory">
+        <option value="">-- All Categories --</option>
+        <option value="Conference" selected="@(Context.Request.Query["searchCategory"] == "Conference")">Conference</option>
+        <option value="Workshop" selected="@(Context.Request.Query["searchCategory"] == "Workshop")">Workshop</option>
+        <option value="Webinar" selected="@(Context.Request.Query["searchCategory"] == "Webinar")">Webinar</option>
+    </select>
+
+    <button type="submit">Search</button>
+    <a asp-action="Index">Clear</a>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Event ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ev in Model)
+        {
+            <tr>
+                <td>@ev.Id</td>
+                <td>@ev.Title</td>
+                <td>@ev.Category</td>
+                <td>@ev.Date.ToShortDateString()</td>
+                <td>@ev.Location</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+This gives you search by Title + filter by Category with minimal controller code and a clean view.
+======================================================================================
 Assesment 5 Documentation: EventEase – Event Management System (Web API)
 ======================================================================================
 
-This document describes the structure and development steps for building the EventEase project using ASP.NET Core Web API, EF Core, DTOs, and DataAnnotations for validation.
-
+- This document describes the extended structure and development steps for building the EventEase project in Phase 2.  
+- The project uses ASP.NET Core Web API, MVC, DTOs, Middleware, Exception Handling , and **Unit Testing**  .
+- This phase builds upon Phase 1 by adding:
+  - A Global Exception Handling Middleware for consistent error responses.
+  - A DTO-based error response model (`ErrorResponseDTO.cs`).
+  - Custom Exceptions (e.g., `NotFoundException`, `ValidationException`).
+  - A separate MVC Layer with Razor views for Users, Events, and Registrations.
+  - Unit Testing layer (`EventEase.Tests`) to test service logic.
+---
 --------------------------------------------------------------------------------------------------
 1. PROJECT STRUCTURE
 --------------------------------------------------------------------------------------------------
 
 EventEase/
-├── EventEase.API/                 --> API Layer (Controllers)
+├── EventEase.API/                 --> API Layer (Controllers,Extensions,Middleware)
 │   ├── Controllers/
 │      ├── UserController.cs
 │      ├── EventController.cs
 │      └── RegistrationController.cs
+│   ├── Extensions/
+│      ├── ExceptionMiddlewareExtensions.cs
+│   ├── Middleware/
+│      ├── GlobalExceptionMiddleware.cs
+│   ├── Program.cs
 ├── EventEase.Application/        --> Application Layer (Services)
 │   └── Services/
 │       ├── UserService.cs
@@ -33,16 +110,127 @@ EventEase/
 │   ├── DTOs/
 │      ├── UserRequestDTO.cs
 │      ├── UserResponseDTO.cs
+│      ├── ErrorResponseDTO.cs
 │      ├── EventRequestDTO.cs
 │      ├── EventResponseDTO.cs
 │      └── RegistrationRequestDTO.cs
 │      └── RegistrationResponseDTO.cs
+│   ├── Exceptions/
+│      ├── NotFoundException.cs
+│      ├── ValidationException.cs
 ├── EventEase.Infrastructure/     --> Infrastructure Layer (Repositories)
 │   └── Repositories/
 │       ├── UserRepository.cs
 │       ├── EventRepository.cs
 │       └── RegistrationRepository.cs
-
+├──  EventEase.MVC/                  --> MVC Layer    
+│    ├──  Controllers/                           # MVC controllers
+│         ├── EventController.cs
+│         └── RegistrationController.cs
+│         └── UserController.cs
+│         └── HomeController.cs
+│    ├──  Models/                                # View models
+│         ├── ErrorViewModel.cs
+│         ├── EventViewModel.cs
+│         ├── RegistrationtionViewModel.cs
+│         └── UserViewModel.cs
+│   └──  Views/                                 # Razor views
+│       ├──  Event/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       ├──  Registration/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       ├──  User/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       └──  Shared/
+│           ├── _Layout.cshtml
+│           └── Error.cshtml
+│
+├──  EventEase.Tests/                   #  TESTING LAYER
+│    └──  Services/
+│           ├── EventServiceTests.cs
+│           └── RegistrationServiceTests.cs
+│           └── UserServiceTests.cs              
+│   └── UnitTest1.cs
+└── EventEase.sln 
+```EventEase/
+├── EventEase.API/                 --> API Layer (Controllers,Extensions,Middleware)
+│   ├── Controllers/
+│      ├── UserController.cs
+│      ├── EventController.cs
+│      └── RegistrationController.cs
+│   ├── Extensions/
+│      ├── ExceptionMiddlewareExtensions.cs
+│   ├── Middleware/
+│      ├── GlobalExceptionMiddleware.cs
+│   ├── Program.cs
+├── EventEase.Application/        --> Application Layer (Services)
+│   └── Services/
+│       ├── UserService.cs
+│       ├── EventService.cs
+│       └── RegistrationService.cs
+├── EventEase.Core/               --> Core Layer (Entities, DTOs, Interfaces)
+│   ├── Entities/
+│      ├── User.cs
+│      ├── Event.cs
+│      └── Registration.cs
+│   └── Interfaces/
+│      ├── IUserRepository.cs
+│      ├── IEventRepository.cs
+│      └── IRegistrationRepository.cs│       
+│      ├── IEventService.cs
+│      ├── IUserService.cs
+│      ├── IRegistrationService.cs
+│   ├── DTOs/
+│      ├── UserRequestDTO.cs
+│      ├── UserResponseDTO.cs
+│      ├── ErrorResponseDTO.cs
+│      ├── EventRequestDTO.cs
+│      ├── EventResponseDTO.cs
+│      └── RegistrationRequestDTO.cs
+│      └── RegistrationResponseDTO.cs
+│   ├── Exceptions/
+│      ├── NotFoundException.cs
+│      ├── ValidationException.cs
+├── EventEase.Infrastructure/     --> Infrastructure Layer (Repositories)
+│   └── Repositories/
+│       ├── UserRepository.cs
+│       ├── EventRepository.cs
+│       └── RegistrationRepository.cs
+├──  EventEase.MVC/                  --> MVC Layer    
+│    ├──  Controllers/                           # MVC controllers
+│         ├── EventController.cs
+│         └── RegistrationController.cs
+│         └── UserController.cs
+│         └── HomeController.cs
+│    ├──  Models/                                # View models
+│         ├── ErrorViewModel.cs
+│         ├── EventViewModel.cs
+│         ├── RegistrationtionViewModel.cs
+│         └── UserViewModel.cs
+│   └──  Views/                                 # Razor views
+│       ├──  Event/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       ├──  Registration/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       ├──  User/
+│       │   ├── Details.cshtml
+│       │   └── Index.cshtml
+│       └──  Shared/
+│           ├── _Layout.cshtml
+│           └── Error.cshtml
+│
+├──  EventEase.Tests/                   #  TESTING LAYER
+│    └──  Services/
+│           ├── EventServiceTests.cs
+│           └── RegistrationServiceTests.cs
+│           └── UserServiceTests.cs              
+│   └── UnitTest1.cs
+└── EventEase.sln 
 --------------------------------------------------------------------------------------------------
 2. CONTROLLERS (API Layer)
 --------------------------------------------------------------------------------------------------
@@ -52,49 +240,117 @@ File: EventEase.API/Controllers/UserController.cs
 using EventEase.Core.DTOs;
 using EventEase.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace EventEase.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUserService _service;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService service)
         {
-            _userService = userService;
-
-            // Sample users
-            _userService.AddUser(new UserRequestDTO { Name = "Alice", Email = "alice@example.com" });
-            _userService.AddUser(new UserRequestDTO { Name = "Bob", Email = "bob@example.com" });
+            _service = service;
         }
 
-        [HttpGet("All")]
-        public ActionResult<List<UserResponseDTO>> GetAllUsers()
+        // ----------------- SYNC -----------------
+        [HttpGet("sync")]
+        public ActionResult<IEnumerable<UserResponseDTO>> GetAll()
         {
-            var users = _userService.GetAllUsers();
+            var users = _service.GetAllUsers();
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<UserResponseDTO> GetUserById(int id)
+        [HttpGet("sync/{id}", Name = "GetUserByIdSync")]
+        public ActionResult<UserResponseDTO> GetById(int id)
         {
-            var user = _userService.GetUserById(id);
-            if (user == null) return NotFound($"User with ID {id} not found.");
+            var user = _service.GetUserById(id);
+            if (user == null)
+                return NotFound();
+
             return Ok(user);
         }
 
-        [HttpPost("Add")]
-        public IActionResult AddUser([FromBody] UserRequestDTO userDto)
+        [HttpPost("sync")]
+        public ActionResult Create([FromBody] UserRequestDTO dto)
         {
-            _userService.AddUser(userDto);
-            return Ok("User added successfully.");
+            var id = _service.AddUser(dto);
+            var createdUser = _service.GetUserById(id);
+            return CreatedAtRoute("GetUserByIdSync", new { id }, createdUser);
+        }
+
+        [HttpPut("sync/{id}")]
+        public ActionResult Update(int id, [FromBody] UserRequestDTO dto)
+        {
+            var existing = _service.GetUserById(id);
+            if (existing == null)
+                return NotFound();
+
+            _service.UpdateUser(id, dto);
+            return Ok("User updated successfully.");
+        }
+
+        [HttpDelete("sync/{id}")]
+        public ActionResult Delete(int id)
+        {
+            var existing = _service.GetUserById(id);
+            if (existing == null)
+                return NotFound();
+
+            _service.DeleteUser(id);
+            return Ok("User deleted successfully.");
+        }
+
+        // ----------------- ASYNC -----------------
+        [HttpGet("async")]
+        public async Task<ActionResult<IEnumerable<UserResponseDTO>>> GetAllAsync()
+        {
+            var users = await _service.GetAllUsersAsync();
+            return Ok(users);
+        }
+
+        [HttpGet("async/{id}", Name = "GetUserByIdAsync")]
+        public async Task<ActionResult<UserResponseDTO>> GetByIdAsync(int id)
+        {
+            var user = await _service.GetUserByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
+        }
+
+        [HttpPost("async")]
+        public async Task<ActionResult> CreateAsync([FromBody] UserRequestDTO dto)
+        {
+            var id = await _service.AddUserAsync(dto);
+            var createdUser = await _service.GetUserByIdAsync(id);
+            return CreatedAtRoute("GetUserByIdAsync", new { id }, createdUser);
+        }
+
+        [HttpPut("async/{id}")]
+        public async Task<ActionResult> UpdateAsync(int id, [FromBody] UserRequestDTO dto)
+        {
+            var existing = await _service.GetUserByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await _service.UpdateUserAsync(id, dto);
+            return Ok("User updated successfully.");
+        }
+
+        [HttpDelete("async/{id}")]
+        public async Task<ActionResult> DeleteAsync(int id)
+        {
+            var existing = await _service.GetUserByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await _service.DeleteUserAsync(id);
+            return Ok("User deleted successfully.");
         }
     }
 }
-
 
 
 File: EventEase.API/Controllers/EventController.cs
@@ -102,56 +358,114 @@ File: EventEase.API/Controllers/EventController.cs
 using EventEase.Core.DTOs;
 using EventEase.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace EventEase.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class EventController : ControllerBase
     {
-        private readonly IEventService _eventService;
+        private readonly IEventService _service;
 
-        public EventController(IEventService eventService)
+        public EventController(IEventService service)
         {
-            _eventService = eventService;
-
-            // Sample events
-            _eventService.AddEvent(new EventRequestDTO
-            {
-                Title = "Tech Conference",
-                Location = "Bangalore",
-                Description = "Annual technology conference."
-            });
-
-            _eventService.AddEvent(new EventRequestDTO
-            {
-                Title = "Music Fest",
-                Location = "Chennai",
-                Description = "Live music festival with popular bands."
-            });
+            _service = service;
         }
 
-        [HttpGet("All")]
-        public ActionResult<List<EventResponseDTO>> GetAllEvents()
+        // ----------------- SYNC -----------------
+        [HttpGet("sync")]
+        public ActionResult<IEnumerable<EventResponseDTO>> GetAll()
         {
-            var events = _eventService.GetAllEvents();
+            var events = _service.GetAllEvents();
             return Ok(events);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult<EventResponseDTO> GetEventById(int id)
+        [HttpGet("sync/{id}", Name = "GetEventByIdSync")]
+        public ActionResult<EventResponseDTO> GetById(int id)
         {
-            var ev = _eventService.GetEventById(id);
-            if (ev == null) return NotFound($"Event with ID {id} not found.");
+            var ev = _service.GetEventById(id);
+            if (ev == null)
+                return NotFound();
+
             return Ok(ev);
         }
 
-        [HttpPost("Add")]
-        public IActionResult AddEvent([FromBody] EventRequestDTO eventDto)
+        [HttpPost("sync")]
+        public ActionResult Create([FromBody] EventRequestDTO dto)
         {
-            _eventService.AddEvent(eventDto);
-            return Ok("Event added successfully.");
+            var id = _service.AddEvent(dto);
+            var createdEvent = _service.GetEventById(id);
+            return CreatedAtRoute("GetEventByIdSync", new { id }, createdEvent);
+        }
+
+        [HttpPut("sync/{id}")]
+        public ActionResult Update(int id, [FromBody] EventRequestDTO dto)
+        {
+            var existing = _service.GetEventById(id);
+            if (existing == null)
+                return NotFound();
+
+            _service.UpdateEvent(id, dto);
+            return Ok("Event updated successfully.");
+        }
+
+        [HttpDelete("sync/{id}")]
+        public ActionResult Delete(int id)
+        {
+            var existing = _service.GetEventById(id);
+            if (existing == null)
+                return NotFound();
+
+            _service.DeleteEvent(id);
+            return Ok("Event deleted successfully.");
+        }
+
+        // ----------------- ASYNC -----------------
+        [HttpGet("async")]
+        public async Task<ActionResult<IEnumerable<EventResponseDTO>>> GetAllAsync()
+        {
+            var events = await _service.GetAllEventsAsync();
+            return Ok(events);
+        }
+
+        [HttpGet("async/{id}", Name = "GetEventByIdAsync")]
+        public async Task<ActionResult<EventResponseDTO>> GetByIdAsync(int id)
+        {
+            var ev = await _service.GetEventByIdAsync(id);
+            if (ev == null)
+                return NotFound();
+
+            return Ok(ev);
+        }
+
+        [HttpPost("async")]
+        public async Task<ActionResult> CreateAsync([FromBody] EventRequestDTO dto)
+        {
+            var id = await _service.AddEventAsync(dto);
+            var createdEvent = await _service.GetEventByIdAsync(id);
+            return CreatedAtRoute("GetEventByIdAsync", new { id }, createdEvent);
+        }
+
+        [HttpPut("async/{id}")]
+        public async Task<ActionResult> UpdateAsync(int id, [FromBody] EventRequestDTO dto)
+        {
+            var existing = await _service.GetEventByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await _service.UpdateEventAsync(id, dto);
+            return Ok("Event updated successfully.");
+        }
+
+        [HttpDelete("async/{id}")]
+        public async Task<ActionResult> DeleteAsync(int id)
+        {
+            var existing = await _service.GetEventByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await _service.DeleteEventAsync(id);
+            return Ok("Event deleted successfully.");
         }
     }
 }
@@ -163,11 +477,12 @@ using EventEase.Core.DTOs;
 using EventEase.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace EventEase.API.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("[controller]")]
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationService _registrationService;
@@ -175,189 +490,495 @@ namespace EventEase.API.Controllers
         public RegistrationController(IRegistrationService registrationService)
         {
             _registrationService = registrationService;
-
-            // Sample registrations (assumes userId and eventId exist)
-            _registrationService.AddRegistration(new RegistrationRequestDTO { UserId = 1, EventId = 1 });
-            _registrationService.AddRegistration(new RegistrationRequestDTO { UserId = 2, EventId = 2 });
         }
 
-        [HttpGet("All")]
-        public ActionResult<List<RegistrationResponseDTO>> GetAllRegistrations()
+        // ----------------- SYNC -----------------
+        [HttpPost("add")]
+        public IActionResult Add([FromBody] RegistrationRequestDTO request)
         {
-            var registrations = _registrationService.GetAllRegistrations();
-            return Ok(registrations);
+            var id = _registrationService.AddRegistration(request);
+            return Ok(new { Id = id });
         }
 
         [HttpGet("{id}")]
-        public ActionResult<RegistrationResponseDTO> GetRegistrationById(int id)
+        public IActionResult GetById(int id)
         {
-            var registration = _registrationService.GetRegistrationById(id);
-            if (registration == null) return NotFound($"Registration with ID {id} not found.");
-            return Ok(registration);
+            var reg = _registrationService.GetRegistrationById(id);
+            if (reg == null) return NotFound();
+            return Ok(reg);
         }
 
-        [HttpPost("Add")]
-        public IActionResult AddRegistration([FromBody] RegistrationRequestDTO registrationDto)
+        [HttpGet("all")]
+        public IActionResult GetAll()
         {
-            _registrationService.AddRegistration(registrationDto);
-            return Ok("Registration added successfully.");
+            var regs = _registrationService.GetAllRegistrations();
+            return Ok(regs);
+        }
+
+        [HttpPut("update/{id}")]
+        public IActionResult Update(int id, [FromBody] RegistrationRequestDTO request)
+        {
+            _registrationService.UpdateRegistration(id, request);
+            return NoContent();
+        }
+
+        [HttpDelete("delete/{id}")]
+        public IActionResult Delete(int id)
+        {
+            _registrationService.DeleteRegistration(id);
+            return NoContent();
+        }
+
+        // ----------------- ASYNC -----------------
+        [HttpPost("add-async")]
+        public async Task<IActionResult> AddAsync([FromBody] RegistrationRequestDTO request)
+        {
+            var id = await _registrationService.AddRegistrationAsync(request);
+            return Ok(new { Id = id });
+        }
+
+        [HttpGet("get-async/{id}")]
+        public async Task<IActionResult> GetByIdAsync(int id)
+        {
+            var reg = await _registrationService.GetRegistrationByIdAsync(id);
+            if (reg == null) return NotFound();
+            return Ok(reg);
+        }
+
+        [HttpGet("all-async")]
+        public async Task<IActionResult> GetAllAsync()
+        {
+            var regs = await _registrationService.GetAllRegistrationsAsync();
+            return Ok(regs);
+        }
+
+        [HttpPut("update-async/{id}")]
+        public async Task<IActionResult> UpdateAsync(int id, [FromBody] RegistrationRequestDTO request)
+        {
+            await _registrationService.UpdateRegistrationAsync(id, request);
+            return NoContent();
+        }
+
+        [HttpDelete("delete-async/{id}")]
+        public async Task<IActionResult> DeleteAsync(int id)
+        {
+            await _registrationService.DeleteRegistrationAsync(id);
+            return NoContent();
         }
     }
 }
 
+
+File: EventEase.API/Exceptions/ExceptionMiddlewareExtensions.cs
+
+using EventEase.API.Middleware;
+
+namespace EventEase.API.Extensions
+{
+    public static class ExceptionMiddlewareExtensions
+    {
+        public static IApplicationBuilder UseExceptionMiddleware(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<GlobalExceptionMiddleware>();
+        }
+    }
+}
+
+File: EventEase.API/Middleware/GlobaExceptionMiddleware.cs
+
+using EventEase.Core.DTOs;
+using EventEase.Core.Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+
+namespace EventEase.API.Middleware
+{
+    public class GlobalExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
+
+        public GlobalExceptionMiddleware(
+            RequestDelegate next,
+            ILogger<GlobalExceptionMiddleware> logger,
+            IWebHostEnvironment env)
+        {
+            _next = next;
+            _logger = logger;
+            _env = env;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                await HandleExceptionAsync(context, ex);
+            }
+        }
+
+        private async Task HandleExceptionAsync(HttpContext context, Exception ex)
+        {
+            var correlationId = context.TraceIdentifier;
+            context.Response.ContentType = "application/json";
+
+            int statusCode;
+            string message;
+            string? details = null;
+
+            switch (ex)
+            {
+                case NotFoundException notFoundException:
+                    statusCode = StatusCodes.Status404NotFound;
+                    message = notFoundException.Message;
+                    details = _env.IsDevelopment() ? notFoundException.ToString() : null;
+                    break;
+
+                case ValidationException validationException:
+                    statusCode = StatusCodes.Status400BadRequest;
+                    message = validationException.Message;
+                    details = _env.IsDevelopment()
+                        ? JsonSerializer.Serialize(validationException.Errors)
+                        : null;
+                    break;
+
+                default:
+                    statusCode = StatusCodes.Status500InternalServerError;
+                    message = "An unexpected error occurred.";
+                    details = _env.IsDevelopment() ? ex.StackTrace : null;
+                    break;
+            }
+
+            var errorResponse = new ErrorResponseDTO
+            {
+                StatusCode = statusCode,
+                Message = message,
+                Details = details,
+                CorrelationId = correlationId
+            };
+
+            _logger.LogError(ex, "Unhandled Exception: {Message}", message);
+
+            context.Response.StatusCode = statusCode;
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse, jsonOptions));
+        }
+    }
+}
+
+File: EventEase.API/Program.cs
+
+using EventEase.API.Extensions;
+using EventEase.Application.Services;
+using EventEase.Core.Interfaces;
+using EventEase.Infrastructure.Repositories; 
+using Microsoft.Extensions.DependencyInjection;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IUserService, UserService>();
+
+builder.Services.AddSingleton<IEventRepository, EventRepository>();
+builder.Services.AddSingleton<IEventService, EventService>();
+
+builder.Services.AddSingleton<IRegistrationRepository, RegistrationRepository>();
+builder.Services.AddSingleton<IRegistrationService, RegistrationService>();
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+app.UseExceptionMiddleware();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+
 File: EventEase.Application/Services/EventService.cs
 
-using EventEase.Core.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using EventEase.Core.DTOs;
 using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
+using EventEase.Core.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+// Force ValidationException to always use your custom one
+using ValidationException = EventEase.Core.Exceptions.ValidationException;
+
 namespace EventEase.Application.Services
 {
     public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
+
         public EventService(IEventRepository eventRepository)
         {
             _eventRepository = eventRepository;
         }
-        public void AddEvent(EventRequestDTO eventDto)
-        {
 
-            var eventEntity = new Event
+        // ----------------- SYNC -----------------
+        public int AddEvent(EventRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Title))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Title", new[] { "Title is required." } } });
+
+            var ev = new Event
             {
-                Title = eventDto.Title,
-                Description = eventDto.Description,
-                Date = eventDto.Date,
-                Location = eventDto.Location
+                Title = request.Title,
+                Description = request.Description,
+                Location = request.Location,
+                Date = request.Date
             };
-            _eventRepository.Add(eventEntity);
-            _eventRepository.SaveChanges();
+
+            _eventRepository.Add(ev);
+            return ev.Id;
         }
-        public void UpdateEvent(int id, EventRequestDTO eventDto)
-        {
-            var existingEvent = _eventRepository.GetById(id);
-            if (existingEvent == null)
-            {
-                throw new KeyNotFoundException("Event not found");
-            }
-            existingEvent.Title = eventDto.Title;
-            existingEvent.Description = eventDto.Description;
-            existingEvent.Date = eventDto.Date;
-            existingEvent.Location = eventDto.Location;
-            _eventRepository.Update(existingEvent);
-            _eventRepository.SaveChanges();
-        }
-        public void DeleteEvent(int id)
-        {
-            var existingEvent = _eventRepository.GetById(id);
-            if (existingEvent == null)
-            {
-                throw new KeyNotFoundException("Event not found");
-            }
-            _eventRepository.Delete(id);
-            _eventRepository.SaveChanges();
-        }
-        public List<EventResponseDTO> GetAllEvents()
-        {
-            var events = _eventRepository.GetAll();
-            return events.Select(e => new EventResponseDTO
-            {
-                Id = e.Id,
-                Title = e.Title,
-                Description = e.Description,
-                Date = e.Date,
-                Location = e.Location
-            }).ToList();
-        }
+
         public EventResponseDTO? GetEventById(int id)
         {
-            var existingEvent = _eventRepository.GetById(id);
-            if (existingEvent == null)
+            var ev = _eventRepository.GetById(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+            return MapToResponseDTO(ev);
+        }
+
+        public IEnumerable<EventResponseDTO> GetAllEvents()
+        {
+            return _eventRepository.GetAll().Select(MapToResponseDTO);
+        }
+
+        public void UpdateEvent(int id, EventRequestDTO request)
+        {
+            var ev = _eventRepository.GetById(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+
+            if (string.IsNullOrWhiteSpace(request.Title))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Title", new[] { "Title is required." } } });
+
+            ev.Title = request.Title;
+            ev.Description = request.Description;
+            ev.Location = request.Location;
+            ev.Date = request.Date;
+
+            _eventRepository.Update(ev);
+        }
+
+        public void DeleteEvent(int id)
+        {
+            var ev = _eventRepository.GetById(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+            _eventRepository.Delete(id);
+        }
+
+        // ----------------- ASYNC -----------------
+        public async Task<int> AddEventAsync(EventRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Title))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Title", new[] { "Title is required." } } });
+
+            var ev = new Event
             {
-                return null;
-            }
+                Title = request.Title,
+                Description = request.Description,
+                Location = request.Location,
+                Date = request.Date
+            };
+
+            await _eventRepository.AddAsync(ev);
+            return ev.Id;
+        }
+
+        public async Task<EventResponseDTO?> GetEventByIdAsync(int id)
+        {
+            var ev = await _eventRepository.GetByIdAsync(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+            return MapToResponseDTO(ev);
+        }
+
+        public async Task<IEnumerable<EventResponseDTO>> GetAllEventsAsync()
+        {
+            var events = await _eventRepository.GetAllAsync();
+            return events.Select(MapToResponseDTO);
+        }
+
+        public async Task UpdateEventAsync(int id, EventRequestDTO request)
+        {
+            var ev = await _eventRepository.GetByIdAsync(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+
+            if (string.IsNullOrWhiteSpace(request.Title))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Title", new[] { "Title is required." } } });
+
+            ev.Title = request.Title;
+            ev.Description = request.Description;
+            ev.Location = request.Location;
+            ev.Date = request.Date;
+
+            await _eventRepository.UpdateAsync(ev);
+        }
+
+        public async Task DeleteEventAsync(int id)
+        {
+            var ev = await _eventRepository.GetByIdAsync(id);
+            if (ev == null) throw new NotFoundException($"Event with ID {id} not found.");
+            await _eventRepository.DeleteAsync(id);
+        }
+
+        // ----------------- Mapper -----------------
+        private EventResponseDTO MapToResponseDTO(Event ev)
+        {
             return new EventResponseDTO
             {
-                Id = existingEvent.Id,
-                Title = existingEvent.Title,
-                Description = existingEvent.Description,
-                Date = existingEvent.Date,
-                Location = existingEvent.Location
+                Id = ev.Id,
+                Title = ev.Title,
+                Description = ev.Description,
+                Location = ev.Location,
+                Date = ev.Date
             };
         }
     }
 }
 
+
 File: EventEase.Application/Services/UserService.cs
 
 using EventEase.Core.DTOs;
 using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
 using EventEase.Core.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
+using ValidationException = EventEase.Core.Exceptions.ValidationException;
 
 namespace EventEase.Application.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+
         public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
-        public void AddUser(UserRequestDTO userRequest)
+
+        // ----------------- SYNC -----------------
+        public int AddUser(UserRequestDTO request)
         {
-            var userEntity = new User
-            {
-                Name = userRequest.Name,
-                Email = userRequest.Email,
-            };
-            _userRepository.Add(userEntity);
-            _userRepository.SaveChanges();
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Name", new[] { "Name is required." } } });
+
+            var user = new User { Name = request.Name, Email = request.Email };
+            _userRepository.Add(user);
+            return user.Id;
         }
-        public void UpdateUser(int id, UserRequestDTO userRequest)
-        {
-            var existingUser = _userRepository.GetById(id);
-            if (existingUser == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-            existingUser.Name = userRequest.Name;
-            existingUser.Email = userRequest.Email;
-            _userRepository.Update(existingUser);
-            _userRepository.SaveChanges();
-        }
-        public void DeleteUser(int id)
-        {
-            var existingUser = _userRepository.GetById(id);
-            if (existingUser == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-            _userRepository.Delete(id);
-            _userRepository.SaveChanges();
-        }
-        public List<UserResponseDTO> GetAllUsers()
-        {
-            var users = _userRepository.GetAll();
-            return users.Select(u => new UserResponseDTO
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Email = u.Email
-            }).ToList();
-        }
+
         public UserResponseDTO? GetUserById(int id)
         {
             var user = _userRepository.GetById(id);
-            if (user == null) return null;
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+            return MapToResponseDTO(user);
+        }
+
+        public IEnumerable<UserResponseDTO> GetAllUsers()
+        {
+            return _userRepository.GetAll().Select(MapToResponseDTO);
+        }
+
+        public void UpdateUser(int id, UserRequestDTO request)
+        {
+            var user = _userRepository.GetById(id);
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+
+            user.Name = request.Name;
+            user.Email = request.Email;
+            _userRepository.Update(user);
+        }
+
+        public void DeleteUser(int id)
+        {
+            var user = _userRepository.GetById(id);
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+            _userRepository.Delete(id);
+        }
+
+        // ----------------- ASYNC -----------------
+        public async Task<int> AddUserAsync(UserRequestDTO request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+                throw new ValidationException(new Dictionary<string, string[]>
+                { { "Name", new[] { "Name is required." } } });
+
+            var user = new User { Name = request.Name, Email = request.Email };
+            await _userRepository.AddAsync(user);
+            return user.Id;
+        }
+
+        public async Task<UserResponseDTO?> GetUserByIdAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+            return MapToResponseDTO(user);
+        }
+
+        public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
+        {
+            var users = await _userRepository.GetAllAsync();
+            return users.Select(MapToResponseDTO);
+        }
+
+        public async Task UpdateUserAsync(int id, UserRequestDTO request)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+
+            user.Name = request.Name;
+            user.Email = request.Email;
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task DeleteUserAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException($"User with ID {id} not found.");
+            await _userRepository.DeleteAsync(id);
+        }
+
+        private UserResponseDTO MapToResponseDTO(User user)
+        {
             return new UserResponseDTO
             {
                 Id = user.Id,
@@ -368,87 +989,141 @@ namespace EventEase.Application.Services
     }
 }
 
+
 File: EventEase.Application/Services/RegistrationService.cs
 
 using EventEase.Core.DTOs;
 using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
 using EventEase.Core.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
+using ValidationException = EventEase.Core.Exceptions.ValidationException;
 
 namespace EventEase.Application.Services
 {
     public class RegistrationService : IRegistrationService
     {
         private readonly IRegistrationRepository _registrationRepository;
+
         public RegistrationService(IRegistrationRepository registrationRepository)
         {
             _registrationRepository = registrationRepository;
         }
-        public void AddRegistration(RegistrationRequestDTO registrationRequest)
+
+        // ----------------- SYNC -----------------
+        public int AddRegistration(RegistrationRequestDTO request)
         {
-            var registrationEntity = new Registration
-            {
-                UserId = registrationRequest.UserId,
-                EventId = registrationRequest.EventId,
-                RegistrationDate = DateTime.Now
-            };
-            _registrationRepository.Add(registrationEntity);
-            _registrationRepository.SaveChanges();
+            var reg = new Registration { UserId = request.UserId, EventId = request.EventId };
+            _registrationRepository.Add(reg);
+            return reg.Id;
         }
-        public void UpdateRegistration(int id, RegistrationRequestDTO registrationRequest)
-        {
-            var existingRegistration = _registrationRepository.GetById(id);
-            if (existingRegistration == null)
-            {
-                throw new KeyNotFoundException("Registration not found");
-            }
-            existingRegistration.UserId = registrationRequest.UserId;
-            existingRegistration.EventId = registrationRequest.EventId;
-            _registrationRepository.Update(existingRegistration);
-            _registrationRepository.SaveChanges();
-        }
-        public void DeleteRegistration(int id)
-        {
-            var existingRegistration = _registrationRepository.GetById(id);
-            if (existingRegistration == null)
-            {
-                throw new KeyNotFoundException("Registration not found");
-            }
-            _registrationRepository.Delete(id);
-            _registrationRepository.SaveChanges();
-        }
-        public List<RegistrationResponseDTO> GetAllRegistrations()
-        {
-            var registrations = _registrationRepository.GetAll();
-            return registrations.Select(r => new RegistrationResponseDTO
-            {
-                Id = r.Id,
-                UserId = r.UserId,
-                EventId = r.EventId,
-                RegistrationDate = r.RegistrationDate
-            }).ToList();
-        }
+
         public RegistrationResponseDTO? GetRegistrationById(int id)
         {
-            var registration = _registrationRepository.GetById(id);
-            if (registration == null)
-            {
-                return null;
-            }
+            var reg = _registrationRepository.GetById(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+            return MapToResponseDTO(reg);
+        }
+
+        public IEnumerable<RegistrationResponseDTO> GetAllRegistrations()
+        {
+            return _registrationRepository.GetAll().Select(MapToResponseDTO);
+        }
+
+        public void UpdateRegistration(int id, RegistrationRequestDTO request)
+        {
+            var reg = _registrationRepository.GetById(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+
+            reg.UserId = request.UserId;
+            reg.EventId = request.EventId;
+
+            _registrationRepository.Update(reg);
+        }
+
+        public void DeleteRegistration(int id)
+        {
+            var reg = _registrationRepository.GetById(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+            _registrationRepository.Delete(id);
+        }
+
+        // ----------------- ASYNC -----------------
+        public async Task<int> AddRegistrationAsync(RegistrationRequestDTO request)
+        {
+            var reg = new Registration { UserId = request.UserId, EventId = request.EventId };
+            await _registrationRepository.AddAsync(reg);
+            return reg.Id;
+        }
+
+        public async Task<RegistrationResponseDTO?> GetRegistrationByIdAsync(int id)
+        {
+            var reg = await _registrationRepository.GetByIdAsync(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+            return MapToResponseDTO(reg);
+        }
+
+        public async Task<IEnumerable<RegistrationResponseDTO>> GetAllRegistrationsAsync()
+        {
+            var regs = await _registrationRepository.GetAllAsync();
+            return regs.Select(MapToResponseDTO);
+        }
+
+        public async Task UpdateRegistrationAsync(int id, RegistrationRequestDTO request)
+        {
+            var reg = await _registrationRepository.GetByIdAsync(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+
+            reg.UserId = request.UserId;
+            reg.EventId = request.EventId;
+
+            await _registrationRepository.UpdateAsync(reg);
+        }
+
+        public async Task DeleteRegistrationAsync(int id)
+        {
+            var reg = await _registrationRepository.GetByIdAsync(id);
+            if (reg == null) throw new NotFoundException($"Registration with ID {id} not found.");
+            await _registrationRepository.DeleteAsync(id);
+        }
+
+        // ----------------- Helper -----------------
+        private RegistrationResponseDTO MapToResponseDTO(Registration reg)
+        {
             return new RegistrationResponseDTO
             {
-                Id = registration.Id,
-                UserId = registration.UserId,
-                EventId = registration.EventId,
-                RegistrationDate = registration.RegistrationDate
+                Id = reg.Id,
+                UserId = reg.UserId,
+                EventId = reg.EventId
             };
         }
     }
 }
+
+
+File: EventEase.Core/DTOs/ErrorResponseDTO.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EventEase.Core.DTOs
+{
+    public class ErrorResponseDTO
+    {
+        public string Message { get; set; }
+        public int StatusCode { get; set; }
+        public string Details { get; set; }
+        public string CorrelationId { get; set; }
+
+    }
+}
+
 
 File: EventEase.Core/DTOs/EventRequestDTO.cs
 
@@ -463,19 +1138,16 @@ namespace EventEase.Core.DTOs
 {
     public class EventRequestDTO
     {
-        [[Required(ErrorMessage = "Title is required")]
         public required string Title { get; set; }
 
-        [Required(ErrorMessage = "Description is required")]
         public required string Description { get; set; }
-
 
         public DateTime Date { get; set; }
 
-        [Required(ErrorMessage = "Location is required")]
         public required string Location { get; set; }
     }
 }
+
 
 File: EventEase.Core/DTOs/EventResponseDTO.cs
 
@@ -660,6 +1332,51 @@ namespace EventEase.Core.Entities
     }
 }
 
+File: EventEase.Core/Exceptions/NotFoundException.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EventEase.Core.Exceptions
+{
+    public class NotFoundException : Exception
+    {
+        public NotFoundException(string message) : base(message)
+        {
+
+        }
+    }
+}
+
+File: EventEase.Core/Exceptions/ValidationException.cs
+
+using System;
+using System.Collections.Generic;
+
+namespace  EventEase.Core.Exceptions
+{
+    public class ValidationException : Exception
+    {
+       
+        public IDictionary<string, string[]> Errors { get; }
+
+        // Constructor with a message
+        public ValidationException(string message) : base(message)
+        {
+        }
+
+        // Constructor with validation errors
+        public ValidationException(IDictionary<string, string[]> errors)
+            : base("Validation failed")
+        {
+            Errors = errors;
+        }
+    }
+}
+
 File: EventEase.Core/Interfaces/IEventRepository.cs
 
 using EventEase.Core.Entities;
@@ -680,21 +1397,26 @@ File: EventEase.Core/Interfaces/IEventService.cs
 
 
 using EventEase.Core.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace EventEase.Core.Interfaces
 {
     public interface IEventService
     {
-        void AddEvent(EventRequestDTO eventRequest);
-        void UpdateEvent(int id, EventRequestDTO eventRequest);
-        void DeleteEvent(int id);
-        List<EventResponseDTO> GetAllEvents();
+        // ----------------- SYNC -----------------
+        int AddEvent(EventRequestDTO request);
         EventResponseDTO? GetEventById(int id);
+        IEnumerable<EventResponseDTO> GetAllEvents();
+        void UpdateEvent(int id, EventRequestDTO request);
+        void DeleteEvent(int id);
+
+        // ----------------- ASYNC -----------------
+        Task<int> AddEventAsync(EventRequestDTO request);
+        Task<EventResponseDTO?> GetEventByIdAsync(int id);
+        Task<IEnumerable<EventResponseDTO>> GetAllEventsAsync();
+        Task UpdateEventAsync(int id, EventRequestDTO request);
+        Task DeleteEventAsync(int id);
     }
 }
 
@@ -720,46 +1442,57 @@ namespace EventEase.Core.Interfaces
 File: EventEase.Core/Interfaces/IRegistrationService.cs
 
 using EventEase.Core.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace EventEase.Core.Interfaces
 {
     public interface IRegistrationService
     {
-        void AddRegistration(RegistrationRequestDTO registrationRequest);
-        void UpdateRegistration(int id, RegistrationRequestDTO registrationRequest);
-        void DeleteRegistration(int id);
-        List<RegistrationResponseDTO> GetAllRegistrations();
+        // ----------------- SYNC -----------------
+        int AddRegistration(RegistrationRequestDTO request);
         RegistrationResponseDTO? GetRegistrationById(int id);
+        IEnumerable<RegistrationResponseDTO> GetAllRegistrations();
+        void UpdateRegistration(int id, RegistrationRequestDTO request);  
+        void DeleteRegistration(int id);
+
+        // ----------------- ASYNC -----------------
+        Task<int> AddRegistrationAsync(RegistrationRequestDTO request);
+        Task<RegistrationResponseDTO?> GetRegistrationByIdAsync(int id);
+        Task<IEnumerable<RegistrationResponseDTO>> GetAllRegistrationsAsync();
+        Task UpdateRegistrationAsync(int id, RegistrationRequestDTO request);  
+        Task DeleteRegistrationAsync(int id);
     }
 }
 
 
 File: EventEase.Core/Interfaces/IRepository.cs
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace EventEase.Core.Interfaces
 {
-    public interface IRepository <T> where T : class
+    public interface IRepository<T> where T : class
     {
+        // ----------------- SYNC -----------------
         void Add(T entity);
         void Update(T entity);
         void Delete(int id);
         List<T> GetAll();
-        T ? GetById(int id);
-
+        T? GetById(int id);
         void SaveChanges();
+
+        // ----------------- ASYNC -----------------
+        Task AddAsync(T entity);
+        Task UpdateAsync(T entity);
+        Task DeleteAsync(int id);
+        Task<List<T>> GetAllAsync();
+        Task<T?> GetByIdAsync(int id);
+        Task SaveChangesAsync();
     }
 }
+
 
 
 File: EventEase.Core/Interfaces/IUserRepository.cs
@@ -784,82 +1517,107 @@ File: EventEase.Core/Interfaces/IUserService.cs
 
 
 using EventEase.Core.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace EventEase.Core.Interfaces
 {
     public interface IUserService
     {
-        void AddUser(UserRequestDTO userRequest);
-        void UpdateUser(int id, UserRequestDTO userRequest);
-        void DeleteUser(int id);
-        List<UserResponseDTO> GetAllUsers();
+        // ----------------- SYNC -----------------
+        int AddUser(UserRequestDTO request);
         UserResponseDTO? GetUserById(int id);
+        IEnumerable<UserResponseDTO> GetAllUsers();
+        void UpdateUser(int id, UserRequestDTO request);
+        void DeleteUser(int id);
+
+        // ----------------- ASYNC -----------------
+        Task<int> AddUserAsync(UserRequestDTO request);
+        Task<UserResponseDTO?> GetUserByIdAsync(int id);
+        Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync();
+        Task UpdateUserAsync(int id, UserRequestDTO request);
+        Task DeleteUserAsync(int id);
     }
 }
+
 
 File: EventEase.Infrastructure/Repositories/EventRepository.cs
 
 using EventEase.Core.Entities;
 using EventEase.Core.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace EventEase.Repository.Implementations
+namespace EventEase.Infrastructure.Repositories
 {
     public class EventRepository : IEventRepository
     {
         private readonly List<Event> _events = new();
         private int _nextId = 1;
 
-        public void Add(Event entity)
+        // ----------------- SYNC -----------------
+        public void Add(Event ev)
         {
-            entity.Id = _nextId++;
-            _events.Add(entity);
+            ev.Id = _nextId++;
+            _events.Add(ev);
         }
 
-        public void Update(Event entity)
+        public void Update(Event ev)
         {
-            var existing = _events.FirstOrDefault(e => e.Id == entity.Id);
+            var existing = _events.FirstOrDefault(e => e.Id == ev.Id);
             if (existing != null)
             {
-                existing.Title = entity.Title;
-                existing.Description = entity.Description;
-                existing.Date = entity.Date;
-                existing.Location = entity.Location;
+                existing.Title = ev.Title;
+                existing.Description = ev.Description;
+                existing.Location = ev.Location;
+                existing.Date = ev.Date;
             }
         }
 
         public void Delete(int id)
         {
-            var evt = _events.FirstOrDefault(e => e.Id == id);
-            if (evt != null)
-            {
-                _events.Remove(evt);
-            }
+            var ev = _events.FirstOrDefault(e => e.Id == id);
+            if (ev != null) _events.Remove(ev);
         }
 
-        public List<Event> GetAll()
+        public List<Event> GetAll() => _events;
+
+        public Event? GetById(int id) => _events.FirstOrDefault(e => e.Id == id);
+
+        public void SaveChanges() { /* no-op for in-memory */ }
+
+        // ----------------- ASYNC -----------------
+        public Task AddAsync(Event ev)
         {
-            return _events;
+            Add(ev);
+            return Task.CompletedTask;
         }
 
-        public Event? GetById(int id)
+        public Task UpdateAsync(Event ev)
         {
-            return _events.FirstOrDefault(e => e.Id == id);
+            Update(ev);
+            return Task.CompletedTask;
         }
 
-        public void SaveChanges()
+        public Task DeleteAsync(int id)
         {
-            
+            Delete(id);
+            return Task.CompletedTask;
+        }
+
+        public Task<List<Event>> GetAllAsync() => Task.FromResult(GetAll());
+
+        public Task<Event?> GetByIdAsync(int id) => Task.FromResult(GetById(id));
+
+        public Task SaveChangesAsync()
+        {
+            SaveChanges();
+            return Task.CompletedTask;
         }
     }
 }
+
 
 File: EventEase.Infrastructure/Repositories/RegistrationRepository.cs
 
@@ -867,57 +1625,75 @@ using EventEase.Core.Entities;
 using EventEase.Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace EventEase.Repository.Implementations
+namespace EventEase.Infrastructure.Repositories
 {
     public class RegistrationRepository : IRegistrationRepository
     {
         private readonly List<Registration> _registrations = new();
         private int _nextId = 1;
 
-        public void Add(Registration entity)
+        // ----------------- SYNC -----------------
+        public void Add(Registration reg)
         {
-            entity.Id = _nextId++;
-            entity.RegistrationDate = DateTime.Now;
-            _registrations.Add(entity);
+            reg.Id = _nextId++;
+            _registrations.Add(reg);
         }
 
-        public void Update(Registration entity)
+        public void Update(Registration reg)
         {
-            var existing = _registrations.FirstOrDefault(r => r.Id == entity.Id);
+            var existing = _registrations.FirstOrDefault(r => r.Id == reg.Id);
             if (existing != null)
             {
-                existing.UserId = entity.UserId;
-                existing.EventId = entity.EventId;
-                
+                existing.UserId = reg.UserId;
+                existing.EventId = reg.EventId;
             }
         }
 
         public void Delete(int id)
         {
             var reg = _registrations.FirstOrDefault(r => r.Id == id);
-            if (reg != null)
-            {
-                _registrations.Remove(reg);
-            }
+            if (reg != null) _registrations.Remove(reg);
         }
 
-        public List<Registration> GetAll()
+        public List<Registration> GetAll() => _registrations;
+
+        public Registration? GetById(int id) => _registrations.FirstOrDefault(r => r.Id == id);
+
+        public void SaveChanges() { /* no-op for in-memory */ }
+
+        // ----------------- ASYNC -----------------
+        public Task AddAsync(Registration reg)
         {
-            return _registrations;
+            Add(reg);
+            return Task.CompletedTask;
         }
 
-        public Registration? GetById(int id)
+        public Task UpdateAsync(Registration reg)
         {
-            return _registrations.FirstOrDefault(r => r.Id == id);
+            Update(reg);
+            return Task.CompletedTask;
         }
 
-        public void SaveChanges()
+        public Task DeleteAsync(int id)
         {
-            // No-op for in-memory list
+            Delete(id);
+            return Task.CompletedTask;
+        }
+
+        public Task<List<Registration>> GetAllAsync() => Task.FromResult(GetAll());
+
+        public Task<Registration?> GetByIdAsync(int id) => Task.FromResult(GetById(id));
+
+        public Task SaveChangesAsync()
+        {
+            SaveChanges();
+            return Task.CompletedTask;
         }
     }
 }
+
 
 File: EventEase.Infrastructure/Repositories/UserRepository.cs
 
@@ -925,74 +1701,866 @@ using EventEase.Core.Entities;
 using EventEase.Core.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace EventEase.Repository.Implementations
+namespace EventEase.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly List<User> _users = new();
         private int _nextId = 1;
 
-        public void Add(User entity)
+        // ----------------- SYNC -----------------
+        public void Add(User user)
         {
-            entity.Id = _nextId++;
-            entity.Registrations = new List<Registration>();
-            _users.Add(entity);
+            user.Id = _nextId++;
+            _users.Add(user);
         }
 
-        public void Update(User entity)
+        public void Update(User user)
         {
-            var existing = _users.FirstOrDefault(u => u.Id == entity.Id);
+            var existing = _users.FirstOrDefault(u => u.Id == user.Id);
             if (existing != null)
             {
-                existing.Name = entity.Name;
-                existing.Email = entity.Email;
+                existing.Name = user.Name;
+                existing.Email = user.Email;
             }
         }
 
         public void Delete(int id)
         {
             var user = _users.FirstOrDefault(u => u.Id == id);
-            if (user != null)
-            {
-                _users.Remove(user);
-            }
+            if (user != null) _users.Remove(user);
         }
 
-        public List<User> GetAll()
+        public List<User> GetAll() => _users;
+
+        public User? GetById(int id) => _users.FirstOrDefault(u => u.Id == id);
+
+        public void SaveChanges() { /* no-op for in-memory */ }
+
+        // ----------------- ASYNC -----------------
+        public Task AddAsync(User user)
         {
-            return _users;
+            Add(user);
+            return Task.CompletedTask;
         }
 
-        public User? GetById(int id)
+        public Task UpdateAsync(User user)
         {
-            return _users.FirstOrDefault(u => u.Id == id);
+            Update(user);
+            return Task.CompletedTask;
         }
 
-        public void SaveChanges()
+        public Task DeleteAsync(int id)
         {
-            // No-op for in-memory storage
+            Delete(id);
+            return Task.CompletedTask;
+        }
+
+        public Task<List<User>> GetAllAsync() => Task.FromResult(GetAll());
+
+        public Task<User?> GetByIdAsync(int id) => Task.FromResult(GetById(id));
+
+        public Task SaveChangesAsync()
+        {
+            SaveChanges();
+            return Task.CompletedTask;
         }
     }
 }
 
+File: EventEase.MVC/Controllers/EventController.cs
+
+using EventEase.MVC.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
+
+namespace EventEase.MVC.Controllers
+{
+    public class EventController : Controller
+    {
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<EventController> _logger;
+
+        public EventController(IHttpClientFactory factory, ILogger<EventController> logger)
+        {
+            _httpClient = factory.CreateClient("EventEaseAPI"); // Register in Program.cs
+            _logger = logger;
+        }
+
+        // GET: Event/Index
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var events = await _httpClient.GetFromJsonAsync<IEnumerable<EventViewModel>>("api/event/sync");
+                return View(events);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching events");
+                return View(new List<EventViewModel>());
+            }
+        }
+
+        // GET: Event/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var ev = await _httpClient.GetFromJsonAsync<EventViewModel>($"api/event/sync/{id}");
+                if (ev == null)
+                    return NotFound();
+
+                return View(ev);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching event details for Id={id}");
+                return NotFound();
+            }
+        }
+    }
+}
+
+File: EventEase.MVC/Controllers/RegistrationController.cs
+
+using EventEase.MVC.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
+
+namespace EventEase.MVC.Controllers
+{
+    public class RegistrationController : Controller
+    {
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<RegistrationController> _logger;
+
+        public RegistrationController(IHttpClientFactory factory, ILogger<RegistrationController> logger)
+        {
+            _httpClient = factory.CreateClient("EventEaseAPI");
+            _logger = logger;
+        }
+
+        // GET: Registration/Index
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var registrations = await _httpClient.GetFromJsonAsync<IEnumerable<RegistrationViewModel>>("api/registration/sync");
+                return View(registrations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching registrations");
+                return View(new List<RegistrationViewModel>());
+            }
+        }
+
+        // GET: Registration/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var registration = await _httpClient.GetFromJsonAsync<RegistrationViewModel>($"api/registration/sync/{id}");
+                if (registration == null)
+                    return NotFound();
+
+                return View(registration);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching registration details for Id={id}");
+                return NotFound();
+            }
+        }
+    }
+}
+
+File: EventEase.MVC/Controllers/UserController.cs
+
+using EventEase.MVC.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
+
+namespace EventEase.MVC.Controllers
+{
+    public class UserController : Controller
+    {
+        private readonly HttpClient _httpClient;
+        private readonly ILogger<UserController> _logger;
+
+        public UserController(IHttpClientFactory factory, ILogger<UserController> logger)
+        {
+            _httpClient = factory.CreateClient("EventEaseAPI");
+            _logger = logger;
+        }
+
+        // GET: User/Index
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var users = await _httpClient.GetFromJsonAsync<IEnumerable<UserViewModel>>("api/user/sync");
+                return View(users);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching users");
+                return View(new List<UserViewModel>());
+            }
+        }
+
+        // GET: User/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var user = await _httpClient.GetFromJsonAsync<UserViewModel>($"api/user/sync/{id}");
+                if (user == null)
+                    return NotFound();
+
+                return View(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching user details for Id={id}");
+                return NotFound();
+            }
+        }
+    }
+}
+
+File: EventEase.MVC/Models/ErrorViewModel.cs
+
+namespace EventEase.MVC.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+
+File: EventEase.MVC/Models/EventViewModel.cs
+
+namespace EventEase.MVC.Models
+{
+    public class EventViewModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Location { get; set; }
+        public DateTime Date { get; set; }
+    }
+}
+
+File: EventEase.MVC/Models/RegistrationViewModel.cs
+
+namespace EventEase.MVC.Models
+{
+    public class RegistrationViewModel
+    {
+        public int Id { get; set; }
+
+        public int UserId { get; set; }
+
+        public int EventId { get; set; }
+
+        public DateTime RegisteredOn { get; set; }
+
+        public string? UserName { get; set; }
+        public string? EventTitle { get; set; }
+    }
+}
+
+File: EventEase.MVC/Models/UserViewModel.cs
+
+namespace EventEase.MVC.Models
+{
+    public class UserViewModel
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string Email { get; set; } = string.Empty;
+    }
+}
+
+
+File: EventEase.MVC/Views/Event/Index.cshtml
+@model IEnumerable<EventEase.MVC.Models.EventViewModel>
+
+@{
+    ViewData["Title"] = "Events List";
+}
+
+<h2>Events List</h2>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var ev in Model)
+            {
+                <tr>
+                    <td>@ev.Id</td>
+                    <td>@ev.Title</td>
+                    <td>@ev.Date.ToString("yyyy-MM-dd")</td>
+                    <td>@ev.Location</td>
+                    <td>
+                        <a asp-controller="Event" asp-action="Details" asp-route-id="@ev.Id" class="btn btn-sm btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No events found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+File: EventEase.MVC/Views/Event/Details.cshtml
+
+@model EventEase.MVC.Models.EventViewModel
+
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<h2>Event Details</h2>
+
+<div class="card shadow-sm p-4">
+    <dl class="row">
+        <dt class="col-sm-3">Id</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">Title</dt>
+        <dd class="col-sm-9">@Model.Title</dd>
+
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">@Model.Description</dd>
+
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@Model.Date.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">Location</dt>
+        <dd class="col-sm-9">@Model.Location</dd>
+    </dl>
+
+    <div class="mt-3">
+        <a asp-controller="Event" asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+File: EventEase.MVC/Views/Registration/Index.cshtml
+
+@model IEnumerable<EventEase.MVC.Models.RegistrationViewModel>
+
+@{
+    ViewData["Title"] = "Registrations List";
+}
+
+<h2>Registrations List</h2>
+
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>User</th>
+            <th>Event</th>
+            <th>Registered On</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var reg in Model)
+            {
+                <tr>
+                    <td>@reg.Id</td>
+                    <td>@reg.UserName</td>
+                    <td>@reg.EventTitle</td>
+                    <td>@reg.RegisteredOn.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-controller="Registration" asp-action="Details" asp-route-id="@reg.Id" class="btn btn-sm btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted">No registrations found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+File: EventEase.MVC/Views/Registration/Details.cshtml
+
+@model EventEase.MVC.Models.RegistrationViewModel
+
+@{
+    ViewData["Title"] = "Registration Details";
+}
+
+<h2>Registration Details</h2>
+
+<div class="card shadow-sm p-4">
+    <dl class="row">
+        <dt class="col-sm-3">Id</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">User</dt>
+        <dd class="col-sm-9">@Model.UserName</dd>
+
+        <dt class="col-sm-3">Event</dt>
+        <dd class="col-sm-9">@Model.EventTitle</dd>
+
+        <dt class="col-sm-3">Registered On</dt>
+        <dd class="col-sm-9">@Model.RegisteredOn.ToString("yyyy-MM-dd")</dd>
+    </dl>
+
+    <div class="mt-3">
+        <a asp-controller="Registration" asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+File: EventEase.MVC/Program.cs
+
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Register MVC services for Views + Controllers
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddHttpClient("EventEaseAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7277"); // Update with your API’s URL
+});
+
+var app = builder.Build();
+
+// Error handling and security configuration
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts(); // Enforce HTTPS Strict Transport Security
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+// Default route: Home controller with Index action
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+File: EventEase.Tests/Services/EventServiceTests.cs
+
+using EventEase.Application.Services;
+using EventEase.Core.DTOs;
+using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
+using EventEase.Core.Interfaces;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace EventEase.Tests
+{
+    public class EventServiceTests
+    {
+        private readonly Mock<IEventRepository> _mockRepo;
+        private readonly EventService _service;
+
+        public EventServiceTests()
+        {
+            _mockRepo = new Mock<IEventRepository>();
+            _service = new EventService(_mockRepo.Object);
+        }
+
+        [Fact]
+        public async Task AddEventAsync_ValidRequest_ReturnsEventId()
+        {
+            // Arrange
+            var request = new EventRequestDTO
+            {
+                Title = "Test Event",
+                Description = "Desc",
+                Location = "Bangalore",
+                Date = DateTime.Now
+            };
+            _mockRepo.Setup(r => r.AddAsync(It.IsAny<Event>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _service.AddEventAsync(request);
+
+            // Assert
+            Assert.True(result >= 0);
+            _mockRepo.Verify(r => r.AddAsync(It.IsAny<Event>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetEventByIdAsync_EventExists_ReturnsEventResponseDTO()
+        {
+            // Arrange
+            var ev = new Event
+            {
+                Id = 1,
+                Title = "Event1",
+                Description = "Desc",
+                Location = "Bangalore",
+                Date = DateTime.Now
+            };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ev);
+
+            // Act
+            var result = await _service.GetEventByIdAsync(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(ev.Title, result.Title);
+        }
+
+        [Fact]
+        public async Task GetEventByIdAsync_EventDoesNotExist_ThrowsNotFoundException()
+        {
+            // Arrange
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Event?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(() => _service.GetEventByIdAsync(1));
+        }
+
+        [Fact]
+        public async Task GetAllEventsAsync_ReturnsListOfEvents()
+        {
+            // Arrange
+            var events = new List<Event>
+            {
+                new Event { Id=1, Title="E1", Description="D1", Location="B", Date=DateTime.Now },
+                new Event { Id=2, Title="E2", Description="D2", Location="M", Date=DateTime.Now }
+            };
+            _mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(events);
+
+            // Act
+            var result = await _service.GetAllEventsAsync();
+
+            // Assert
+            Assert.Equal(2, result.Count());
+        }
+
+        [Fact]
+        public async Task UpdateEventAsync_EventExists_UpdatesEvent()
+        {
+            // Arrange
+            var ev = new Event
+            {
+                Id = 1,
+                Title = "Old Title",
+                Description = "Old Desc",
+                Location = "Old Loc",
+                Date = DateTime.Now
+            };
+            var request = new EventRequestDTO
+            {
+                Title = "New Title",
+                Description = "New Desc",
+                Location = "New Loc",
+                Date = DateTime.Now.AddDays(1)
+            };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ev);
+            _mockRepo.Setup(r => r.UpdateAsync(ev)).Returns(Task.CompletedTask);
+
+            // Act
+            await _service.UpdateEventAsync(1, request);
+
+            // Assert
+            _mockRepo.Verify(r => r.UpdateAsync(It.Is<Event>(e => e.Title == "New Title")), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteEventAsync_EventExists_DeletesEvent()
+        {
+            // Arrange
+            var ev = new Event { Id = 1, Title = "E1", Description = "D", Location = "L", Date = DateTime.Now };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(ev);
+            _mockRepo.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
+
+            // Act
+            await _service.DeleteEventAsync(1);
+
+            // Assert
+            _mockRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+    }
+}
+
+File: EventEase.Tests/Services/RegistrationServiceTests.cs
+
+using EventEase.Application.Services;
+using EventEase.Core.DTOs;
+using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
+using EventEase.Core.Interfaces;
+using Moq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace EventEase.Tests
+{
+    public class RegistrationServiceTests
+    {
+        private readonly Mock<IRegistrationRepository> _mockRepo;
+        private readonly RegistrationService _service;
+
+        public RegistrationServiceTests()
+        {
+            _mockRepo = new Mock<IRegistrationRepository>();
+            _service = new RegistrationService(_mockRepo.Object);
+        }
+
+        [Fact]
+        public async Task AddRegistrationAsync_ShouldAddRegistration()
+        {
+            // Arrange
+            var request = new RegistrationRequestDTO { UserId = 1, EventId = 2 };
+            _mockRepo.Setup(r => r.AddAsync(It.IsAny<Registration>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _service.AddRegistrationAsync(request);
+
+            // Assert
+            Assert.True(result >= 0);
+            _mockRepo.Verify(r => r.AddAsync(It.IsAny<Registration>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetRegistrationByIdAsync_ShouldReturnRegistration()
+        {
+            // Arrange
+            var reg = new Registration { Id = 1, UserId = 1, EventId = 2 };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(reg);
+
+            // Act
+            var result = await _service.GetRegistrationByIdAsync(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result!.Id);
+            Assert.Equal(1, result.UserId);
+            Assert.Equal(2, result.EventId);
+        }
+
+        [Fact]
+        public async Task GetRegistrationByIdAsync_WhenNotFound_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Registration?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(() => _service.GetRegistrationByIdAsync(1));
+        }
+
+        [Fact]
+        public async Task GetAllRegistrationsAsync_ShouldReturnAllRegistrations()
+        {
+            // Arrange
+            var regs = new List<Registration>
+            {
+                new Registration { Id = 1, UserId = 1, EventId = 2 },
+                new Registration { Id = 2, UserId = 2, EventId = 2 }
+            };
+            _mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(regs);
+
+            // Act
+            var result = await _service.GetAllRegistrationsAsync();
+
+            // Assert
+            Assert.Equal(2, result.Count());
+        }
+
+        [Fact]
+        public async Task DeleteRegistrationAsync_ShouldDeleteRegistration()
+        {
+            // Arrange
+            var reg = new Registration { Id = 1, UserId = 1, EventId = 2 };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(reg);
+            _mockRepo.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
+
+            // Act
+            await _service.DeleteRegistrationAsync(1);
+
+            // Assert
+            _mockRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteRegistrationAsync_WhenNotFound_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((Registration?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteRegistrationAsync(1));
+        }
+    }
+}
+
+File: EventEase.Tests/Services/UserServiceTests.cs
+
+using EventEase.Application.Services;
+using EventEase.Core.DTOs;
+using EventEase.Core.Entities;
+using EventEase.Core.Exceptions;
+using EventEase.Core.Interfaces;
+using Moq;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace EventEase.Tests
+{
+    public class UserServiceTests
+    {
+        private readonly Mock<IUserRepository> _mockRepo;
+        private readonly UserService _service;
+
+        public UserServiceTests()
+        {
+            _mockRepo = new Mock<IUserRepository>();
+            _service = new UserService(_mockRepo.Object);
+        }
+
+        [Fact]
+        public async Task AddUserAsync_ShouldAddUser()
+        {
+            // Arrange
+            var request = new UserRequestDTO { Name = "John Doe", Email = "john@example.com" };
+            _mockRepo.Setup(r => r.AddAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _service.AddUserAsync(request);
+
+            // Assert
+            Assert.True(result >= 0);
+            _mockRepo.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserByIdAsync_ShouldReturnUser()
+        {
+            // Arrange
+            var user = new User { Id = 1, Name = "John Doe", Email = "john@example.com" };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+
+            // Act
+            var result = await _service.GetUserByIdAsync(1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result!.Id);
+            Assert.Equal("John Doe", result.Name);
+        }
+
+        [Fact]
+        public async Task GetUserByIdAsync_WhenNotFound_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((User?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(() => _service.GetUserByIdAsync(1));
+        }
+
+        [Fact]
+        public async Task GetAllUsersAsync_ShouldReturnAllUsers()
+        {
+            // Arrange
+            var users = new List<User>
+            {
+                new User { Id = 1, Name = "John Doe", Email = "john@example.com" },
+                new User { Id = 2, Name = "Jane Doe", Email = "jane@example.com" }
+            };
+            _mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(users);
+
+            // Act
+            var result = await _service.GetAllUsersAsync();
+
+            // Assert
+            Assert.Equal(2, result.Count());
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_ShouldDeleteUser()
+        {
+            // Arrange
+            var user = new User { Id = 1, Name = "John Doe", Email = "john@example.com" };
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+            _mockRepo.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
+
+            // Act
+            await _service.DeleteUserAsync(1);
+
+            // Assert
+            _mockRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteUserAsync_WhenNotFound_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            _mockRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((User?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteUserAsync(1));
+        }
+    }
+}
 
 --------------------------------------------------------------------------------------------------
-3. USAGE NOTES
+3. RUNNING THE PROJECT
 --------------------------------------------------------------------------------------------------
-
-- All DTOs use DataAnnotations for validation.
-- Swagger UI is enabled by default when running EventEase.API.
-- API endpoints: /api/users, /api/events, /api/registration
-- Use [HttpPost] for creation and [HttpGet] for listing and fetching by id.
-
---------------------------------------------------------------------------------------------------
-4. RUNNING THE PROJECT
---------------------------------------------------------------------------------------------------
-
+Configure multiple startup Projects (API and MVC)
 > dotnet build
-> dotnet run --project EventEase.API
-
+> dotnet run 
 Then browse to https://localhost:{port}/swagger to explore the API.
 
+> dotnet test (for tests)
 --------------------------------------------------------------------------------------------------
