@@ -1,0 +1,26 @@
+﻿@model IEnumerable<HostelManagement.MVC.Models.StaffViewModel>
+
+<h2>All Staff</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Capacity</th>
+            <th>Rooms Managed</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var staff in Model)
+        {
+            <tr>
+                <td>@staff.Name</td>
+                <td>@staff.Capacity</td>
+                <td>@staff.RoomsManaged</td>
+                <td>
+                    <a asp-controller="StaffView" asp-action="Details" asp-route-id="@staff.Id">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
