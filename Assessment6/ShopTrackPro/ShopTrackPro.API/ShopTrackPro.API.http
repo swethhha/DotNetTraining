@@ -1,0 +1,6 @@
+@ShopTrackPro.API_HostAddress = http://localhost:5105
+
+GET {{ShopTrackPro.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
