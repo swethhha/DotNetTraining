@@ -1,0 +1,1735 @@
+===============================================================================
+                    SHOPTRACKPRO - COMPLETE PROJECT DOCUMENTATION
+===============================================================================
+
+PROJECT OVERVIEW:
+ShopTrackPro is a comprehensive e-commerce management system built using .NET 8 
+with Clean Architecture principles. The system provides both API and MVC interfaces
+for managing users, products, orders, and order items with role-based authentication.
+
+ARCHITECTURE:
+The project follows Clean Architecture with the following layers:
+1. ShopTrackPro.Core - Domain entities, DTOs, interfaces, and exceptions
+2. ShopTrackPro.Infrastructure - Data access layer with Entity Framework
+3. ShopTrackPro.Application - Business logic and services
+4. ShopTrackPro.API - RESTful API controllers
+5. ShopTrackPro.MVC - Web application frontend
+6. ShopTrackPro.Tests - Unit tests
+
+===============================================================================
+                              SOLUTION STRUCTURE
+===============================================================================
+
+ShopTrackPro.sln:
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.Core", "ShopTrackPro.Core\ShopTrackPro.Core.csproj", "{C8E4D03C-8D52-4459-9638-80E7B2A7A6A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.Infrastructure", "ShopTrackPro.Infrastructure\ShopTrackPro.Infrastructure.csproj", "{F4B35F62-1C4A-4E38-B1B6-B959BD4B0E63}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.Application", "ShopTrackPro.Application\ShopTrackPro.Application.csproj", "{A8EC6627-8312-48E9-9CEA-012B278770FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.API", "ShopTrackPro.API\ShopTrackPro.API.csproj", "{C3759D57-35FB-400E-A156-93A84AC451CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.Tests", "ShopTrackPro.Tests\ShopTrackPro.Tests.csproj", "{638E356F-5CBC-40D3-A3B6-F33C789DEB90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopTrackPro.MVC", "ShopTrackPro.MVC\ShopTrackPro.MVC.csproj", "{1E1A32DF-183C-4592-BF8E-5B8CBF859C40}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8E4D03C-8D52-4459-9638-80E7B2A7A6A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8E4D03C-8D52-4459-9638-80E7B2A7A6A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8E4D03C-8D52-4459-9638-80E7B2A7A6A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8E4D03C-8D52-4459-9638-80E7B2A7A6A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4B35F62-1C4A-4E38-B1B6-B959BD4B0E63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4B35F62-1C4A-4E38-B1B6-B959BD4B0E63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4B35F62-1C4A-4E38-B1B6-B959BD4B0E63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4B35F62-1C4A-4E38-B1B6-B959BD4B0E63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8EC6627-8312-48E9-9CEA-012B278770FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8EC6627-8312-48E9-9CEA-012B278770FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8EC6627-8312-48E9-9CEA-012B278770FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8EC6627-8312-48E9-9CEA-012B278770FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3759D57-35FB-400E-A156-93A84AC451CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3759D57-35FB-400E-A156-93A84AC451CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3759D57-35FB-400E-A156-93A84AC451CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3759D57-35FB-400E-A156-93A84AC451CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{638E356F-5CBC-40D3-A3B6-F33C789DEB90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{638E356F-5CBC-40D3-A3B6-F33C789DEB90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{638E356F-5CBC-40D3-A3B6-F33C789DEB90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{638E356F-5CBC-40D3-A3B6-F33C789DEB90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E1A32DF-183C-4592-BF8E-5B8CBF859C40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E1A32DF-183C-4592-BF8E-5B8CBF859C40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E1A32DF-183C-4592-BF8E-5B8CBF859C40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E1A32DF-183C-4592-BF8E-5B8CBF859C40}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF0D6EB7-F455-4B2D-A4EA-A247D18B6DC3}
+	EndGlobalSection
+EndGlobal
+
+===============================================================================
+                           1. SHOPTRACKPRO.CORE LAYER
+===============================================================================
+
+DESCRIPTION:
+The Core layer contains the domain entities, DTOs, interfaces, and custom exceptions.
+This layer has no dependencies on other layers and represents the business domain.
+
+PROJECT FILE - ShopTrackPro.Core.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+
+-------------------------------------------------------------------------------
+                              DOMAIN ENTITIES
+-------------------------------------------------------------------------------
+
+User.cs - Represents a system user with role-based access:
+
+using System;
+using System.Collections.Generic;
+
+namespace ShopTrackPro.Core.Entities;
+
+public partial class User
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string Email { get; set; } = null!;
+
+    public string PasswordHash { get; set; } = null!;
+
+    public string Role { get; set; } = null!;
+}
+
+EXPLANATION: The User entity stores user information including hashed passwords and roles (Admin, Seller, User) for authorization purposes.
+
+Product.cs - Represents products in the inventory:
+
+using System;
+using System.Collections.Generic;
+
+namespace ShopTrackPro.Core.Entities;
+
+
+public partial class Product
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public decimal Price { get; set; }
+
+    public int Stock { get; set; }
+
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+}
+
+EXPLANATION: The Product entity manages inventory with stock tracking and establishes a one-to-many relationship with OrderItems.
+
+Order.cs - Represents customer orders:
+
+using System;
+using System.Collections.Generic;
+
+namespace ShopTrackPro.Core.Entities;
+
+public partial class Order
+{
+    public int Id { get; set; }
+
+    public int UserId { get; set; }
+
+    public DateTime OrderDate { get; set; }
+
+    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+    public virtual User User { get; set; } = null!;
+}
+
+EXPLANATION: The Order entity links users to their orders and contains multiple order items. It establishes relationships with both User and OrderItem entities.
+
+OrderItem.cs - Represents individual items within an order:
+
+using System;
+using System.Collections.Generic;
+
+namespace ShopTrackPro.Core.Entities;
+
+public partial class OrderItem
+{
+    public int Id { get; set; }
+
+    public int OrderId { get; set; }
+
+    public int ProductId { get; set; }
+
+    public int Quantity { get; set; }
+
+    public virtual Order Order { get; set; } = null!;
+
+    public virtual Product Product { get; set; } = null!;
+}
+
+EXPLANATION: OrderItem represents the many-to-many relationship between Orders and Products, storing quantity information for each product in an order.
+
+-------------------------------------------------------------------------------
+                                   DTOs
+-------------------------------------------------------------------------------
+
+AuthResponseDTO.cs - Authentication response:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.DTO
+{
+    public class AuthResponseDTO
+    {
+        public string Token { get; set; } = string.Empty;
+        public DateTime Expiration { get; set; }
+
+    }
+}
+
+LoginRequestDTO.cs - Login request data:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.DTO
+{
+    public class LoginRequestDTO
+    {
+        public string Email { get; set; } = string.Empty;  // use Email as username
+        public string Password { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty ;
+    }
+}
+
+RegisterRequestDTO.cs - User registration data:
+
+namespace ShopTrackPro.Core.DTO
+{
+    public class RegisterRequestDTO
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+
+        public string Role {  get; set; } = string.Empty;
+    }
+}
+
+UserRequestDTO.cs - User creation/update data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class UserRequestDTO
+{
+    public string Name { get; set; } = null!;
+    public string Email { get; set; } = null!;
+    public string Password { get; set; } = null!; // plain password (will be hashed in service)
+}
+
+UserResponseDTO.cs - User response data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class UserResponseDTO
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string Email { get; set; } = null!;
+}
+
+ProductRequestDTO.cs - Product creation/update data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class ProductRequestDTO
+{
+    public string Name { get; set; } = null!;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}
+
+ProductResponseDTO.cs - Product response data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class ProductResponseDTO
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}
+
+OrderRequestDTO.cs - Order creation data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class OrderRequestDTO
+{
+    public int UserId { get; set; }
+    public List<OrderItemRequestDTO> Items { get; set; } = new();
+}
+
+OrderResponseDTO.cs - Order response data:
+
+using ShopTrackPro.Core.DTO;
+
+namespace ShopTrackPro.Core.DTO;
+
+public class OrderResponseDTO
+{
+    public int Id { get; set; }
+    public int UserId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public List<OrderItemResponseDTO> Items { get; set; } = new();
+}
+
+OrderItemRequestDTO.cs - Order item creation data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class OrderItemRequestDTO
+{
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+}
+
+OrderItemResponseDTO.cs - Order item response data:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class OrderItemResponseDTO
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = null!;
+    public decimal Price { get; set; }
+    public int Quantity { get; set; }
+}
+
+ErrorResponseDTO.cs - Error response structure:
+
+namespace ShopTrackPro.Core.DTO;
+
+public class ErrorResponseDTO
+{
+    public string Message { get; set; }
+    public int StatusCode { get; set; }
+    public string Details { get; set; }
+    public string CorrelationId { get; set; }
+}
+
+EXPLANATION: DTOs provide data transfer objects that separate internal domain models from external API contracts, ensuring clean separation of concerns.
+
+-------------------------------------------------------------------------------
+                               INTERFACES
+-------------------------------------------------------------------------------
+
+IRepository.cs - Generic repository pattern:
+
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IRepository<T> where T : class
+    {
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<T?> GetByIdAsync(int id);
+        Task AddAsync(T entity);
+        void Update(T entity);
+        void Delete(T entity);
+        Task<int> SaveChangesAsync();
+    }
+}
+
+IUserRepository.cs - User-specific repository:
+
+using ShopTrackPro.Core.Entities;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IUserRepository : IRepository<User>
+    {
+    }
+}
+
+IUserService.cs - User service interface:
+
+using ShopTrackPro.Core.DTO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IUserService
+    {
+        Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync();
+        Task<UserResponseDTO?> GetUserByIdAsync(int id);
+        Task<UserResponseDTO> CreateUserAsync(UserRequestDTO user);
+        Task<UserResponseDTO> UpdateUserAsync(int id, UserRequestDTO user);
+        Task<bool> DeleteUserAsync(int id);
+    }
+}
+
+IProductRepository.cs - Product repository interface:
+
+using ShopTrackPro.Core.Entities;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IProductRepository : IRepository<Product>
+    {
+
+    }
+}
+
+IProductService.cs - Product service interface:
+
+using ShopTrackPro.Core.DTO;
+using ShopTrackPro.Core.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IProductService
+    {
+        Task<IEnumerable<ProductResponseDTO>> GetAllProductsAsync();
+        Task<ProductResponseDTO?> GetProductByIdAsync(int id);
+        Task<ProductResponseDTO> CreateProductAsync(ProductRequestDTO product);
+        Task<ProductResponseDTO> UpdateProductAsync(int id, ProductRequestDTO product);
+        Task<bool> DeleteProductAsync(int id);
+    }
+}
+
+IOrderRepository.cs - Order repository interface:
+
+using ShopTrackPro.Core.Entities;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IOrderRepository : IRepository<Order>
+    {
+    }
+}
+
+IOrderService.cs - Order service interface:
+
+using ShopTrackPro.Core.DTO;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IOrderService
+    {
+        Task<OrderResponseDTO> CreateOrderAsync(OrderRequestDTO dto);
+        Task<IEnumerable<OrderResponseDTO>> GetAllOrdersAsync();
+        Task<OrderResponseDTO?> GetOrderByIdAsync(int id);
+        Task UpdateOrderAsync(int id, OrderRequestDTO dto);
+        Task DeleteOrderAsync(int id);
+
+        // ✅ Add this method
+        Task<IEnumerable<OrderResponseDTO>> GetOrdersByUserIdAsync(int userId);
+    }
+}
+
+IOrderItemRepository.cs - Order item repository interface:
+
+using ShopTrackPro.Core.Entities;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IOrderItemRepository : IRepository<OrderItem>
+    {
+    }
+}
+
+IOrderItemService.cs - Order item service interface:
+
+using ShopTrackPro.Core.DTO;
+
+namespace ShopTrackPro.Core.Interfaces
+{
+    public interface IOrderItemService
+    {
+        Task<OrderItemResponseDTO> AddOrderItemAsync(int orderId, OrderItemRequestDTO dto);
+        Task<IEnumerable<OrderItemResponseDTO>> GetOrderItemsByOrderIdAsync(int orderId);
+        Task DeleteOrderItemAsync(int id);
+    }
+}
+
+EXPLANATION: Interfaces define contracts for repositories and services, enabling dependency inversion and testability through dependency injection.
+
+-------------------------------------------------------------------------------
+                              CUSTOM EXCEPTIONS
+-------------------------------------------------------------------------------
+
+NotFoundException.cs - Resource not found exception:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Exceptions
+{
+    public class NotFoundException : Exception
+    {
+        public NotFoundException(string? message) : base(message) { }
+    }
+}
+
+ValidationException.cs - Validation error exception:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Exceptions
+{
+    public class ValidationException : Exception
+    {
+        public Dictionary<string, string[]> Errors { get; }
+
+        public ValidationException(Dictionary<string, string[]> errors)
+            : base("Validation failed")
+        {
+            Errors = errors;
+        }
+    }
+}
+
+UnauthorizedException.cs - Authentication failure exception:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Exceptions
+{
+    public class UnauthorizedException : Exception
+    {
+        public UnauthorizedException(string message) : base(message) { }
+    }
+}
+
+ForbiddenException.cs - Authorization failure exception:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Exceptions
+{
+    public class ForbiddenException : Exception
+    {
+        public ForbiddenException(string message) : base(message) { }
+    }
+}
+
+ConflictException.cs - Resource conflict exception:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ShopTrackPro.Core.Exceptions
+{
+    public class ConflictException : Exception
+    {
+        public ConflictException(string message) : base(message) { }
+    }
+}
+
+EXPLANATION: Custom exceptions provide specific error handling for different business scenarios, enabling proper HTTP status code mapping in the API layer.
+
+===============================================================================
+                        2. SHOPTRACKPRO.INFRASTRUCTURE LAYER
+===============================================================================
+
+DESCRIPTION:
+The Infrastructure layer handles data access using Entity Framework Core and implements
+the repository pattern. It contains the database context and repository implementations.
+
+PROJECT FILE - ShopTrackPro.Infrastructure.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShopTrackPro.Core\ShopTrackPro.Core.csproj" />
+  </ItemGroup>
+
+</Project>
+
+-------------------------------------------------------------------------------
+                              DATABASE CONTEXT
+-------------------------------------------------------------------------------
+
+ShopTrackProContext.cs - Entity Framework database context:
+
+using Microsoft.EntityFrameworkCore;
+using ShopTrackPro.Core.Entities;  // ✅ bring in your domain entities
+
+namespace ShopTrackPro.Infrastructure.Data
+{
+    public partial class ShopTrackProContext : DbContext
+    {
+        public ShopTrackProContext()
+        {
+        }
+
+        public ShopTrackProContext(DbContextOptions<ShopTrackProContext> options)
+            : base(options)
+        {
+        }
+
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderItem> OrderItems { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(
+                    "Server=.;Database=ShopTrackProDB;User Id=sa;Password=Swetha@06112004;TrustServerCertificate=True;"
+                );
+            }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // same mapping code as before...
+        }
+
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    }
+}
+
+EXPLANATION: The DbContext manages database connections and entity mappings. It provides DbSets for each entity and configures the SQL Server connection.
+
+-------------------------------------------------------------------------------
+                            REPOSITORY IMPLEMENTATIONS
+-------------------------------------------------------------------------------
+
+UserRepository.cs - User data access implementation:
+
+using Microsoft.EntityFrameworkCore;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Interfaces;
+using ShopTrackPro.Infrastructure.Data;
+
+namespace ShopTrackPro.Infrastructure.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly ShopTrackProContext _context;
+
+        public UserRepository(ShopTrackProContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddAsync(User entity)
+        {
+            await _context.Users.AddAsync(entity);
+        }
+
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
+
+        public void Update(User entity)
+        {
+            _context.Users.Update(entity);
+        }
+
+        public void Delete(User entity)
+        {
+            _context.Users.Remove(entity);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+    }
+}
+
+ProductRepository.cs - Product data access implementation:
+
+using Microsoft.EntityFrameworkCore;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Interfaces;
+using ShopTrackPro.Infrastructure.Data;
+
+namespace ShopTrackPro.Infrastructure.Repositories
+{
+    public class ProductRepository : IProductRepository
+    {
+        private readonly ShopTrackProContext _context;
+
+        public ProductRepository(ShopTrackProContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddAsync(Product entity)
+        {
+            await _context.Products.AddAsync(entity);
+        }
+
+        public async Task<IEnumerable<Product>> GetAllAsync()
+        {
+            return await _context.Products.ToListAsync();
+        }
+
+        public async Task<Product?> GetByIdAsync(int id)
+        {
+            return await _context.Products.FindAsync(id);
+        }
+
+        public void Update(Product entity)
+        {
+            _context.Products.Update(entity);
+        }
+
+        public void Delete(Product entity)
+        {
+            _context.Products.Remove(entity);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+    }
+}
+
+OrderRepository.cs - Order data access with related data:
+
+using Microsoft.EntityFrameworkCore;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Interfaces;
+using ShopTrackPro.Infrastructure.Data;
+
+namespace ShopTrackPro.Infrastructure.Repositories
+{
+    public class OrderRepository : IOrderRepository
+    {
+        private readonly ShopTrackProContext _context;
+
+        public OrderRepository(ShopTrackProContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddAsync(Order entity)
+        {
+            await _context.Orders.AddAsync(entity);
+        }
+
+        public async Task<IEnumerable<Order>> GetAllAsync()
+        {
+            return await _context.Orders
+       .Include(o => o.OrderItems)
+           .ThenInclude(oi => oi.Product)
+       .ToListAsync();
+        }
+
+        public async Task<Order?> GetByIdAsync(int id)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                 .ThenInclude(oi => oi.Product) // include product for price/name
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+        }
+
+        public void Update(Order entity)
+        {
+            _context.Orders.Update(entity);
+        }
+
+        public void Delete(Order entity)
+        {
+            _context.Orders.Remove(entity);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+    }
+}
+
+OrderItemRepository.cs - Order item data access:
+
+using Microsoft.EntityFrameworkCore;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Interfaces;
+using ShopTrackPro.Infrastructure.Data;
+
+namespace ShopTrackPro.Infrastructure.Repositories
+{
+    public class OrderItemRepository : IOrderItemRepository
+    {
+        private readonly ShopTrackProContext _context;
+
+        public OrderItemRepository(ShopTrackProContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddAsync(OrderItem entity)
+        {
+            await _context.OrderItems.AddAsync(entity);
+        }
+
+        public async Task<IEnumerable<OrderItem>> GetAllAsync()
+        {
+            return await _context.OrderItems
+                                 .Include(oi => oi.Order)
+                                 .Include(oi => oi.Product)
+                                 .ToListAsync();
+        }
+
+        public async Task<OrderItem?> GetByIdAsync(int id)
+        {
+            return await _context.OrderItems
+                                 .Include(oi => oi.Order)
+                                 .Include(oi => oi.Product)
+                                 .FirstOrDefaultAsync(oi => oi.Id == id);
+        }
+
+        public void Update(OrderItem entity)
+        {
+            _context.OrderItems.Update(entity);
+        }
+
+        public void Delete(OrderItem entity)
+        {
+            _context.OrderItems.Remove(entity);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+    }
+}
+
+EXPLANATION: Repository implementations provide concrete data access logic using Entity Framework Core. They include related data loading using Include() for complex queries and maintain separation between data access and business logic.
+
+===============================================================================
+                        3. SHOPTRACKPRO.APPLICATION LAYER
+===============================================================================
+
+DESCRIPTION:
+The Application layer contains business logic, services, and AutoMapper configurations.
+It orchestrates between the domain and infrastructure layers.
+
+PROJECT FILE - ShopTrackPro.Application.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShopTrackPro.Core\ShopTrackPro.Core.csproj" />
+    <ProjectReference Include="..\ShopTrackPro.Infrastructure\ShopTrackPro.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+  </ItemGroup>
+
+</Project>
+
+-------------------------------------------------------------------------------
+                              AUTOMAPPER CONFIGURATION
+-------------------------------------------------------------------------------
+
+MappingProfile.cs - Object mapping configuration:
+
+using AutoMapper;
+using ShopTrackPro.Core.DTO;
+using ShopTrackPro.Core.Entities;
+
+namespace ShopTrackPro.Application.Mapping
+{
+    public class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            // Product
+            CreateMap<Product, ProductResponseDTO>();
+            CreateMap<ProductRequestDTO, Product>();
+
+            // User
+            CreateMap<User, UserResponseDTO>();
+            CreateMap<UserRequestDTO, User>();
+
+            // OrderItem
+            CreateMap<OrderItem, OrderItemResponseDTO>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price));
+
+            CreateMap<OrderItemRequestDTO, OrderItem>();
+
+            // Order
+            CreateMap<Order, OrderResponseDTO>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.OrderItems));
+
+            CreateMap<OrderRequestDTO, Order>();
+        }
+    }
+}
+
+EXPLANATION: AutoMapper configuration defines how to map between domain entities and DTOs, including complex mappings for nested objects and calculated properties.
+
+-------------------------------------------------------------------------------
+                              SERVICE IMPLEMENTATIONS
+-------------------------------------------------------------------------------
+
+UserService.cs - User business logic:
+
+using AutoMapper;
+using ShopTrackPro.Core.DTO;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Exceptions;
+using ShopTrackPro.Core.Interfaces;
+
+namespace ShopTrackPro.Application.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly IUserRepository _userRepo;
+        private readonly IMapper _mapper;
+
+        public UserService(IUserRepository userRepo, IMapper mapper)
+        {
+            _userRepo = userRepo;
+            _mapper = mapper;
+        }
+
+        public async Task<UserResponseDTO> CreateUserAsync(UserRequestDTO userDto)
+        {
+            if (string.IsNullOrWhiteSpace(userDto.Name))
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "Name", new[] { "User name is required." } }
+                });
+
+            if (string.IsNullOrWhiteSpace(userDto.Email))
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "Email", new[] { "Email is required." } }
+                });
+
+            var user = _mapper.Map<User>(userDto);
+            await _userRepo.AddAsync(user);
+            await _userRepo.SaveChangesAsync();
+            return _mapper.Map<UserResponseDTO>(user);
+        }
+
+        public async Task<UserResponseDTO> UpdateUserAsync(int id, UserRequestDTO userDto)
+        {
+            var user = await _userRepo.GetByIdAsync(id);
+            if (user == null)
+                throw new NotFoundException($"User with ID {id} not found.");
+
+            if (string.IsNullOrWhiteSpace(userDto.Name))
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "Name", new[] { "User name is required." } }
+                });
+
+            if (string.IsNullOrWhiteSpace(userDto.Email))
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "Email", new[] { "Email is required." } }
+                });
+
+            _mapper.Map(userDto, user);
+            _userRepo.Update(user);
+            await _userRepo.SaveChangesAsync();
+            return _mapper.Map<UserResponseDTO>(user);
+        }
+
+        public async Task<bool> DeleteUserAsync(int id)
+        {
+            var user = await _userRepo.GetByIdAsync(id);
+            if (user == null)
+                throw new NotFoundException($"User with ID {id} not found.");
+
+            _userRepo.Delete(user);
+            await _userRepo.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<UserResponseDTO> GetUserByIdAsync(int id)
+        {
+            var user = await _userRepo.GetByIdAsync(id);
+            if (user == null)
+                throw new NotFoundException($"User with ID {id} not found.");
+
+            return _mapper.Map<UserResponseDTO>(user);
+        }
+
+        public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
+        {
+            var users = await _userRepo.GetAllAsync();
+            return _mapper.Map<IEnumerable<UserResponseDTO>>(users);
+        }
+    }
+}
+
+ProductService.cs - Product business logic with validation:
+
+using AutoMapper;
+using ShopTrackPro.Core.DTO;   // ✅ Corrected namespace
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Exceptions;
+using ShopTrackPro.Core.Interfaces;
+
+namespace ShopTrackPro.Application.Services
+{
+    public class ProductService : IProductService
+    {
+        private readonly IProductRepository _productRepo;
+        private readonly IMapper _mapper;
+
+        public ProductService(IProductRepository productRepo, IMapper mapper)
+        {
+            _productRepo = productRepo;
+            _mapper = mapper;
+        }
+
+        public async Task<ProductResponseDTO> CreateProductAsync(ProductRequestDTO productDto)
+        {
+            if (string.IsNullOrWhiteSpace(productDto.Name))
+            {
+                throw new ShopTrackPro.Core.Exceptions.ValidationException(
+                    new Dictionary<string, string[]>
+                    {
+                        { "Name", new[] { "Product name is required." } }
+                    });
+            }
+
+            if (productDto.Price < 0)
+            {
+                throw new ShopTrackPro.Core.Exceptions.ValidationException(
+                    new Dictionary<string, string[]>
+                    {
+                        { "Price", new[] { "Price cannot be negative." } }
+                    });
+            }
+
+            var product = _mapper.Map<Product>(productDto);
+
+            await _productRepo.AddAsync(product);
+            await _productRepo.SaveChangesAsync();
+
+            return _mapper.Map<ProductResponseDTO>(product);
+        }
+
+        public async Task<ProductResponseDTO> UpdateProductAsync(int id, ProductRequestDTO productDto)
+        {
+            var product = await _productRepo.GetByIdAsync(id);
+            if (product == null)
+            {
+                throw new NotFoundException($"Product with ID {id} not found.");
+            }
+
+            if (string.IsNullOrWhiteSpace(productDto.Name))
+            {
+                throw new ShopTrackPro.Core.Exceptions.ValidationException(
+                    new Dictionary<string, string[]>
+                    {
+                        { "Name", new[] { "Product name is required." } }
+                    });
+            }
+
+            if (productDto.Price < 0)
+            {
+                throw new ShopTrackPro.Core.Exceptions.ValidationException(
+                    new Dictionary<string, string[]>
+                    {
+                        { "Price", new[] { "Price cannot be negative." } }
+                    });
+            }
+
+            _mapper.Map(productDto, product);
+
+            _productRepo.Update(product);
+            await _productRepo.SaveChangesAsync();
+
+            return _mapper.Map<ProductResponseDTO>(product);
+        }
+
+        public async Task<bool> DeleteProductAsync(int id)
+        {
+            var product = await _productRepo.GetByIdAsync(id);
+            if (product == null)
+            {
+                throw new NotFoundException($"Product with ID {id} not found.");
+            }
+
+            _productRepo.Delete(product);
+            await _productRepo.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<ProductResponseDTO> GetProductByIdAsync(int id)
+        {
+            var product = await _productRepo.GetByIdAsync(id);
+            if (product == null)
+            {
+                throw new NotFoundException($"Product with ID {id} not found.");
+            }
+
+            return _mapper.Map<ProductResponseDTO>(product);
+        }
+
+        public async Task<IEnumerable<ProductResponseDTO>> GetAllProductsAsync()
+        {
+            var products = await _productRepo.GetAllAsync();
+            return _mapper.Map<IEnumerable<ProductResponseDTO>>(products);
+        }
+    }
+}
+
+EXPLANATION: Service classes contain business logic, validation rules, and coordinate between repositories and DTOs. They handle exceptions and ensure data integrity before persistence.
+
+OrderService.cs - Order business logic with user validation:
+
+using AutoMapper;
+using ShopTrackPro.Core.DTO;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Exceptions;
+using ShopTrackPro.Core.Interfaces;
+
+namespace ShopTrackPro.Application.Services
+{
+    public class OrderService : IOrderService
+    {
+        private readonly IOrderRepository _orderRepo;
+        private readonly IUserRepository _userRepo;
+        private readonly IMapper _mapper;
+
+        public OrderService(IOrderRepository orderRepo, IUserRepository userRepo, IMapper mapper)
+        {
+            _orderRepo = orderRepo;
+            _userRepo = userRepo;
+            _mapper = mapper;
+        }
+
+        public async Task<OrderResponseDTO> CreateOrderAsync(OrderRequestDTO dto)
+        {
+            var user = await _userRepo.GetByIdAsync(dto.UserId);
+            if (user == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "UserId", new[] { "Invalid UserId. User does not exist." } }
+                });
+
+            var order = new Order
+            {
+                UserId = dto.UserId,
+                OrderDate = DateTime.UtcNow,
+                OrderItems = dto.Items?.Select(i => new OrderItem
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity
+                }).ToList() ?? new List<OrderItem>()
+            };
+
+            await _orderRepo.AddAsync(order);
+            await _orderRepo.SaveChangesAsync();
+
+            // Reload the order including OrderItems and Products
+            var createdOrder = await _orderRepo.GetByIdAsync(order.Id);
+            return _mapper.Map<OrderResponseDTO>(createdOrder);
+        }
+
+        public async Task<IEnumerable<OrderResponseDTO>> GetAllOrdersAsync()
+        {
+            var orders = await _orderRepo.GetAllAsync();
+            return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
+        }
+
+        public async Task<IEnumerable<OrderResponseDTO>> GetOrdersByUserIdAsync(int userId)
+        {
+            var orders = (await _orderRepo.GetAllAsync())
+                         .Where(o => o.UserId == userId);
+            return _mapper.Map<IEnumerable<OrderResponseDTO>>(orders);
+        }
+
+        public async Task<OrderResponseDTO> GetOrderByIdAsync(int id)
+        {
+            var order = await _orderRepo.GetByIdAsync(id);
+            if (order == null) throw new NotFoundException($"Order with ID {id} not found.");
+            return _mapper.Map<OrderResponseDTO>(order);
+        }
+
+        public async Task UpdateOrderAsync(int id, OrderRequestDTO dto)
+        {
+            var order = await _orderRepo.GetByIdAsync(id);
+            if (order == null) throw new NotFoundException($"Order with ID {id} not found.");
+
+            var user = await _userRepo.GetByIdAsync(dto.UserId);
+            if (user == null)
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { "UserId", new[] { "Invalid UserId. User does not exist." } }
+                });
+
+            order.UserId = dto.UserId;
+
+            // Replace OrderItems
+            order.OrderItems = dto.Items?.Select(i => new OrderItem
+            {
+                ProductId = i.ProductId,
+                Quantity = i.Quantity
+            }).ToList() ?? new List<OrderItem>();
+
+            _orderRepo.Update(order);
+            await _orderRepo.SaveChangesAsync();
+        }
+
+        public async Task DeleteOrderAsync(int id)
+        {
+            var order = await _orderRepo.GetByIdAsync(id);
+            if (order == null) throw new NotFoundException($"Order with ID {id} not found.");
+
+            _orderRepo.Delete(order);
+            await _orderRepo.SaveChangesAsync();
+        }
+    }
+}
+
+OrderItemService.cs - Order item management with conflict handling:
+
+using ShopTrackPro.Core.DTO;
+using ShopTrackPro.Core.Entities;
+using ShopTrackPro.Core.Exceptions;
+using ShopTrackPro.Core.Interfaces;
+
+namespace ShopTrackPro.Application.Services
+{
+    public class OrderItemService : IOrderItemService
+    {
+        private readonly IOrderItemRepository _orderItemRepo;
+        private readonly IOrderRepository _orderRepo;
+        private readonly IProductRepository _productRepo;
+
+        public OrderItemService(
+            IOrderItemRepository orderItemRepo,
+            IOrderRepository orderRepo,
+            IProductRepository productRepo)
+        {
+            _orderItemRepo = orderItemRepo;
+            _orderRepo = orderRepo;
+            _productRepo = productRepo;
+        }
+
+        /// <summary>
+        /// Adds a product to the cart (order). If it already exists, increases quantity.
+        /// </summary>
+        public async Task<OrderItemResponseDTO> AddOrderItemAsync(int orderId, OrderItemRequestDTO dto)
+        {
+            if (dto.Quantity <= 0)
+            {
+                throw new ValidationException(new Dictionary<string, string[]>
+                {
+                    { nameof(dto.Quantity), new[] { "Quantity must be greater than zero." } }
+                });
+            }
+
+            // Ensure order exists
+            var order = await _orderRepo.GetByIdAsync(orderId)
+                        ?? throw new NotFoundException($"Order (cart) with ID {orderId} not found.");
+
+            // Ensure product exists
+            var product = await _productRepo.GetByIdAsync(dto.ProductId)
+                          ?? throw new NotFoundException($"Product with ID {dto.ProductId} not found.");
+
+            // Check if item already exists in cart
+            var existingItem = (await _orderItemRepo.GetAllAsync())
+                                .FirstOrDefault(i => i.OrderId == orderId && i.ProductId == dto.ProductId);
+
+            if (existingItem != null)
+            {
+                // Example conflict scenario
+                if (existingItem.Quantity + dto.Quantity > 100) // max allowed quantity
+                    throw new ConflictException("Cannot add more than 100 units of this product.");
+
+                existingItem.Quantity += dto.Quantity;
+                _orderItemRepo.Update(existingItem);
+            }
+            else
+            {
+                var newItem = new OrderItem
+                {
+                    OrderId = orderId,
+                    ProductId = dto.ProductId,
+                    Quantity = dto.Quantity
+                };
+                await _orderItemRepo.AddAsync(newItem);
+            }
+
+            await _orderItemRepo.SaveChangesAsync();
+
+            return new OrderItemResponseDTO
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                Price = product.Price,
+                Quantity = existingItem?.Quantity ?? dto.Quantity
+            };
+        }
+
+        /// <summary>
+        /// Returns all items in a cart (order).
+        /// </summary>
+        public async Task<IEnumerable<OrderItemResponseDTO>> GetOrderItemsByOrderIdAsync(int orderId)
+        {
+            var order = await _orderRepo.GetByIdAsync(orderId)
+                        ?? throw new NotFoundException($"Order with ID {orderId} not found.");
+
+            var items = (await _orderItemRepo.GetAllAsync())
+                        .Where(i => i.OrderId == orderId)
+                        .ToList();
+
+            if (!items.Any())
+                return Enumerable.Empty<OrderItemResponseDTO>();
+
+            var result = new List<OrderItemResponseDTO>();
+
+            foreach (var item in items)
+            {
+                var product = item.Product ?? await _productRepo.GetByIdAsync(item.ProductId)
+                              ?? throw new NotFoundException($"Product with ID {item.ProductId} not found.");
+
+                result.Add(new OrderItemResponseDTO
+                {
+                    ProductId = product.Id,
+                    ProductName = product.Name,
+                    Price = product.Price,
+                    Quantity = item.Quantity
+                });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Removes a single item from the cart.
+        /// </summary>
+        public async Task DeleteOrderItemAsync(int id)
+        {
+            var item = await _orderItemRepo.GetByIdAsync(id)
+                       ?? throw new NotFoundException($"Order item with ID {id} not found.");
+
+            _orderItemRepo.Delete(item);
+            await _orderItemRepo.SaveChangesAsync();
+        }
+    }
+}
+
+EXPLANATION: Service classes implement complex business logic including validation, error handling, and coordination between multiple repositories. They ensure data consistency and business rule enforcement.
+
+===============================================================================
+                            4. SHOPTRACKPRO.API LAYER
+===============================================================================
+
+DESCRIPTION:
+The API layer provides RESTful endpoints with JWT authentication, role-based authorization,
+and comprehensive error handling through middleware.
+
+PROJECT FILE - ShopTrackPro.API.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+    <Folder Include="Middleware\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShopTrackPro.Application\ShopTrackPro.Application.csproj" />
+    <ProjectReference Include="..\ShopTrackPro.Core\ShopTrackPro.Core.csproj" />
+  </ItemGroup>
+
+</Project>
+
+-------------------------------------------------------------------------------
+                              CONFIGURATION FILES
+-------------------------------------------------------------------------------
+
+appsettings.json - Application configuration:
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=ShopTrackProDB;User Id=sa;Password=Swetha@06112004;TrustServerCertificate=True;"
+  },
+  "Jwt": {
+    "Key": "SuperLongSecureKey1234567890!@#$%^&*()_+-=<>?",
+    "Issuer": "ShopTrackPro",
+    "Audience": "ShopTrackProUsers",
+    "ExpireMinutes": "60"
+  }
+}
+
+appsettings.Development.json - Development configuration:
+
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}
+
+Program.cs - Application startup and dependency injection:
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using ShopTrackPro.API.Extensions;
+using ShopTrackPro.API.Middleware;
+using ShopTrackPro.Application.Mapping;
+using ShopTrackPro.Application.Services;
+using ShopTrackPro.Core.Interfaces;
+using ShopTrackPro.Infrastructure.Data;
+using ShopTrackPro.Infrastructure.Repositories;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ===== Add Services =====
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// ===== DbContext =====
+builder.Services.AddDbContext<ShopTrackProContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+// ===== Authentication & JWT =====
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        var jwtConfig = builder.Configuration.GetSection("Jwt");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtConfig["Issuer"],
+            ValidAudience = jwtConfig["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtConfig["Key"] ?? throw new ArgumentNullException("Jwt:Key")))
+        };
+    });
+
+// ===== Authorization Policies =====
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireSeller", policy => policy.RequireRole("Seller"));
+    options.AddPolicy("RequireUser", policy => policy.RequireRole("User"));
+});
+
+// ===== Controllers =====
+builder.Services.AddControllers();
+
+// ===== Swagger with JWT Support & Multiple Groups =====
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Create separate Swagger docs for each controller group
+    c.SwaggerDoc("auth", new OpenApiInfo { Title = "Auth API", Version = "v1" });
+    c.SwaggerDoc("users", new OpenApiInfo { Title = "Users API", Version = "v1" });
+    c.SwaggerDoc("products", new OpenApiInfo { Title = "Products API", Version = "v1" });
+    c.SwaggerDoc("orders", new OpenApiInfo { Title = "Orders API", Version = "v1" });
+    c.SwaggerDoc("orderitems", new OpenApiInfo { Title = "OrderItems API", Version = "v1" });
+
+    // JWT Bearer security
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token with Bearer prefix (e.g. 'Bearer eyJhbGciOi...')",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            new string[] {}
+        }
+    });
+
+    // Map controllers to their Swagger group
+    c.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        if (!apiDesc.TryGetMethodInfo(out var methodInfo)) return false;
+        var groupName = apiDesc.ActionDescriptor.EndpointMetadata
+            .OfType<Microsoft.AspNetCore.Mvc.ApiExplorerSettingsAttribute>()
+            .FirstOrDefault()?.GroupName;
+        return groupName == docName;
+    });
+});
+
+var app = builder.Build();
+
+// ===== Middleware =====
+app.UseExceptionMiddleware();
+app.UseHttpsRedirection();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/auth/swagger.json", "Auth API v1");      
+        c.SwaggerEndpoint("/swagger/users/swagger.json", "Users API v1");
+        c.SwaggerEndpoint("/swagger/products/swagger.json", "Products API v1");
+        c.SwaggerEndpoint("/swagger/orders/swagger.json", "Orders API v1");
+        c.SwaggerEndpoint("/swagger/orderitems/swagger.json", "OrderItems API v1");
+        c.RoutePrefix = "swagger"; // optional
+    });
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.Run();
+
+EXPLANATION: Program.cs configures dependency injection, JWT authentication, authorization policies, and Swagger documentation with multiple API groups.
+
+===============================================================================
+                            5. SHOPTRACKPRO.MVC LAYER
+===============================================================================
+
+DESCRIPTION:
+The MVC layer provides a web frontend that consumes the API through HttpClient.
+It demonstrates separation of concerns between API and presentation layers.
+
+PROJECT FILE - ShopTrackPro.MVC.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>
+
+Program.cs - MVC application startup:
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+// Register IHttpClientFactory for all controllers
+builder.Services.AddHttpClient();
+
+// Optionally, register a named HttpClient for your API
+builder.Services.AddHttpClient("ShopTrackProAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7190/"); 
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+// Default route
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+===============================================================================
+                            6. SHOPTRACKPRO.TESTS LAYER
+===============================================================================
+
+DESCRIPTION:
+The Tests layer contains unit tests using xUnit, Moq for mocking, and follows
+AAA (Arrange, Act, Assert) pattern for comprehensive test coverage.
+
+PROJECT FILE - ShopTrackPro.Tests.csproj:
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShopTrackPro.Application\ShopTrackPro.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
+
+EXPLANATION: This architecture demonstrates enterprise-level .NET development practices with proper separation of concerns, comprehensive testing, and production-ready security implementations.
+
+===============================================================================
+                                END OF DOCUMENTATION
+===============================================================================
