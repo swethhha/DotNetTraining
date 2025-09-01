@@ -1,0 +1,31 @@
+﻿@model IEnumerable<ShopTrackPro.MVC.Models.ProductViewModel>
+
+@{
+    ViewData["Title"] = "Products List";
+}
+
+<h2>Products List</h2>
+
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.Id</td>
+                <td>@product.Name</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>
+                    <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-info btn-sm">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

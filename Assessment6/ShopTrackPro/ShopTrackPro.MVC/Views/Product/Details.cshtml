@@ -1,0 +1,20 @@
+﻿@model ShopTrackPro.MVC.Models.ProductViewModel
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<h2>Product Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Id</dt>
+    <dd class="col-sm-9">@Model.Id</dd>
+
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">Price</dt>
+    <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+</dl>
+
+<a asp-controller="Product" asp-action="Index" class="btn btn-secondary">Back to List</a>
